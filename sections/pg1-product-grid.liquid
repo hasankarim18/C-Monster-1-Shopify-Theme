@@ -1,0 +1,529 @@
+{% comment %} 
+    Section: CMONSTER PG1 Product Grid
+    Compatible with: Shopify Horizon Theme
+    Features: AJAX filtering, sorting, pagination, variant swatches, AJAX add-to-cart
+    Section Independence: Fully scoped to section.id -- safe for multiple instance on one page.
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+  href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+  rel="stylesheet"
+>
+
+{%- liquid
+    assign sid = section.id
+    assign products_per_page = section.settings.products_per_page | default:8
+    assign show_rating       = section.settings.show_rating
+    assign show_vendor       = section.settings.show_vendor
+    assign show_wishlist     = section.settings.show_wishlist
+    assign enable_pagination = section.settings.enable_pagination
+    assign enable_filtering  = section.settings.enable_filtering
+    assign enable_sorting    = section.settings.enable_sorting
+    assign enable_badges     = section.settings.enable_badges
+    assign cart_behaviour    = section.settings.cart_behaviour
+
+-%}
+
+
+
+<style>
+
+    #pg1-{{ sid }}{
+        --spg-bg: #f8f8f6;
+        --spg-surface: #ffffff;
+        --spg-ink: #1a1a1a;
+        --spg-muted: #7a7a72;
+        --spg-accent: #2b4fff;
+        --spg-accent2: #ff4d2b;
+        --spg-border: #e5e5e0;
+        --spg-tag-bg: #eef1ff;
+        --spg-tag-ink: #2b4fff;
+        --spg-radius: 12px;
+        --spg-card-r: 16px;
+        --spg-trans: 0.22s cubic-bezier(0.4,0,0.2,1);
+        font-family: 'Montserrat', sans-serif;
+        background: var(--spg-bg);
+        color: var(--spg-ink);
+        -webkit-font-smoothing: antialiased;
+    }
+    .pg1_container{
+        padding:0 20px;
+        max-width:1480px;
+        width:100%;
+        margin:0 auto;
+    }
+
+    #pg1-{{ sid }} .pg1-toolbar{
+         padding: 32px 24px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    #pg1-{{ sid }} .pg1-filter-group{
+    display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        flex: 1;     
+    }
+
+    #pg1-{{sid }} .pg1-filter-pill {
+        padding: 7px 16px;
+        border-radius: 99px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        border: 1.5px solid var(--spg-border);
+        background: var(--spg-surface);
+        color: var(--spg-muted);
+        cursor: pointer;
+        transition: all var(--spg-trans);      
+    }
+    
+    #pg1-{{ sid }} .pg1-filter-pill:hover {
+        border-color: var(--spg-accent);
+        color: var(--spg-accent);
+        }
+    #pg1-{{ sid }} .pg1-filter-pill.active {
+        background: var(--spg-ink);
+        border-color: var(--spg-ink);
+        color: #fff;
+    }
+
+    #pg1-{{ sid }} #pg1-sort-select {
+    padding: 7px 32px 7px 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid var(--spg-border);
+    border-radius: 8px;
+    background: var(--spg-surface);
+    color: var(--spg-ink);
+    cursor: pointer;
+    appearance: none;
+    background-image:url("https://cdn.shopify.com/s/files/1/0744/7642/1210/files/chevron-down.svg?v=1782474620");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color var(--spg-trans);
+  }
+
+  #pg1-{{ sid }} .pg1-sort-select:hover { border-color: var(--spg-accent); }
+  #pg1-{{ sid }} .pg1-results-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--spg-muted);
+    white-space: nowrap;
+  }
+
+  /* ── GRID ── */
+  #pg1-{{ sid }} .pg1-grid-wrapper {
+    max-width: 1340px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  #pg1-{{ sid }} .pg1-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    min-height: 300px;
+  }
+
+  #pg1-{{ sid }} .pg1-badges{
+    position:absolute;
+    top:14px;
+    left:14px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    z-index:2;
+  }
+
+  #pg1-{{sid }} .pg1-badge{
+     padding:4px 10px;
+     border-radius:6px;
+     font-size:700;
+     letter-spacing:0.07em;
+     text-transform:uppercase;
+   }
+
+  #spg-{{ sid }} .spg-badge-new   { background: var(--spg-ink); color: #fff; }
+  #spg-{{ sid }} .spg-badge-sale  { background: var(--spg-accent2); color: #fff; }
+  #spg-{{ sid }} .spg-badge-sold  { background: rgba(255,255,255,0.85); color: var(--spg-muted); backdrop-filter: blur(4px); }
+
+
+    /* phase 2 css goes here */
+</style>
+
+
+<div id="pg1-{{ section.id }}">
+    <div class="pg1_container">
+        
+        {% comment %} TOOLBAR {% endcomment %}
+          <div class="pg1-toolbar"> 
+                {% if enable_filtering == true %}                 
+                    <div class="pg1-filter-group" data-pg1-filter-group>
+                        <button class="pg1-filter-pill active" data-pg1-filter="__all" > All </button>
+                        {% for block in section.blocks %}
+                            {% if block.type == 'collection' %}
+                            {% assign col_handle = block.settings.collection %}
+                            
+                            {% if col_handle != blank and col_handle != null %}
+                                {% assign col = collections[col_handle] %}
+                                {% if col !=blank %}
+                                <button 
+                                    class="pg1-filter-pill"
+                                    data-pg1-filter="{{ col.handle }}"
+                                    data-pg1-collection-title="{{ col.title }}"
+                                    > {{ col.title }} </button>
+                                {% endif %}
+                            {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% comment %} enable_filtering {% endcomment %}
+                {% endif %}
+                {% comment %} SORTING {% endcomment %}
+                {% if enable_sorting %}
+                  <select id="pg1-sort-select" data-pg1-sort-select >
+                    <option value="featured" > Featured </option>
+                    <option value="price-asceding"> Price Low to High </option>
+                    <option value="price-descending"> Price High to Low </option>
+                    <option value="created-descending"> Newest </option>
+                  </select>
+                {% endif %}
+                {% comment %} #product_count {% endcomment %}
+                <span class="spg-results-count" data-pg1-results-count></span>
+            </div>   
+            {% comment %} TOOBAR ENDS UP {% endcomment %}
+        {% comment %} PRODUCT GRID {% endcomment %}
+         <div class="pg1-grid-wrapper">
+            <div class="pg1-product-grid" data-pg1-product-grid>
+             {% comment %} server-side initial render for seo {% endcomment %}
+               {%- assign all_products = '' -%}
+                {%- for block in section.blocks -%}
+                    {%- if block.type == 'collection' -%}
+                    {%- assign col_handle = block.settings.collection -%}
+                    {%- if col_handle != blank and col_handle != null -%}
+                        {%- assign col = collections[col_handle] -%}
+                        {%- if col != blank -%}
+                        {%- for product in col.products limit: products_per_page -%}
+                            {% comment %} {%- render 'spg-product-card',
+                            product: product,
+                            sid: sid,
+                            show_rating: show_rating,
+                            show_vendor: show_vendor,
+                            show_wishlist: show_wishlist,
+                            enable_badges: enable_badges,
+                            collection_handle: col.handle
+                            -%} {% endcomment %}
+                            <div aria-hidden="true" style="display:none"> product card </div>
+                        {%- endfor -%}
+                        {%- endif -%}
+                    {%- endif -%}
+                    {%- endif -%}
+                {%- endfor %}
+            </div>
+         </div>
+         {% if enable_pagination  %}
+            <div class="pg1-pagination" data-pg1-pagination ></div> 
+         {% endif %}
+     </div>
+    {% comment %} #phase:4 data bridge {% endcomment %}
+
+<script type="application/json" id="pg1-data-{{ sid }}" >
+    {
+        "sectionId":         {{ sid | json }},
+        "productsPerPage":   {{ products_per_page }},
+        "showRating":       {{ show_rating | json }},
+        "showVendor":       {{ show_vendor | json }},
+        "showWishList":     {{ show_wishlist | json   }},
+        "enablePagination": {{ enable_pagination | json }},
+        "enableFiltering":  {{ enable_filtering | json }},
+        "enableSorting":    {{ enable_sorting | json }},
+        "enableBadges":     {{ enable_badges | json }},
+        "cartBehaviours":   {{  cart_behaviour | json }},
+        "collections":[
+            {% assign first_col = true %}
+            {% for block in section.blocks %}
+                {% if block.type == 'collection' %}
+                    {% assign col_handle = block.settings.collection %}
+                    {% if col_handle != blank and col_handle != nil %}
+                      {% assign col = collections[col_handle] %}
+                      {% if col != blank %}
+                        {% unless first_col %}, {% endunless %} {% comment %} explain this line why use it and why first_col = false {% endcomment %}
+                        
+                        {% assign first_col = false %}
+                        {
+                            "handle": {{  col.handle | json }},
+                            "title" : {{  col.title | json }},
+                            "products": [
+                                {% for product in col.products %}
+                                    {% unless forloop.first %}, {% endunless %}
+                                    {
+                                        "id":           {{ product.id }},
+                                        "handle":       {{ product.handle | json }},
+                                        "vendor":       {{ product.vendor | json }},
+                                        "url":          {{ product.url | json }},
+                                        "available":    {{ product.available | json }},
+                                        "price":        {{ product.price | json }},
+                                        "compareAtPrice":{{ product.compare_at_price | default: 'null' }},
+                                        "collectionHandle":{{ col.handle | json }},
+                                        "tags":           {{  product.tags | json }},
+                                        "featuredImage": {{ product.featured_image | img_url:'600x' | json  }},
+                                         "images": [
+                                            {%- for image in product.images limit: 5 -%}
+                                            {%- unless forloop.first %},{%- endunless %} {% comment %} what is this unless what does it meand and what is this comma, and how forloop.first is false help  {% endcomment %}
+                                            {{ image | img_url: '600x' | json }}
+                                            {%- endfor %}
+                                        ],
+                                        "options":      {{ product.options | json }},
+                                        "variants": [
+                                            {% for variant in product.variants %}
+                                              {% unless forloop.first %},    {% endunless %}                           
+                                              {
+                                                "id":              {{  variant.id }},
+                                                "title":           {{  variant.title | json }},
+                                                "available":       {{  variant.available | json }},
+                                                "price":           {{ variant.price }},
+                                                "compareAtPrice":  {{ variant.compare_at_price | default: 'null' }},
+                                                "option1":         {{ variant.option1 | json }},
+                                                "option2":         {{ variant.option2 | json }},
+                                                "option3":         {{ variant.option3 | json }},
+                                                "featuredImage":  {{ variant.image | img_url: '600x' | default: '' | json }}
+
+                                              }
+                                            {% endfor %}
+                                        ]
+                                    }
+                                {% endfor %}
+                            ]
+                        }
+                      {% endif %}
+                    {% endif %}
+                {% endif %}
+              
+            {% endfor %}
+        ]
+    }
+  
+</script>
+
+    <div id="pg1-toast-{{ sid }}"></div>
+
+</div>
+
+
+<script>
+       // Phase 4: javascipt goes above
+       // IFFE
+    (function(){
+     // 7.1
+     // 1. Read config    
+
+     const CONFIG = JSON.parse(
+        document.getElementById("pg1-data-{{ sid }}").textContent
+     )
+
+     const SID = CONFIG.sectionId
+
+     // -- 2. DOM. refs ( ALL through root -- never through document )
+
+     const root         = document.getElementById("pg1-" + SID);
+     const gridEl       = root.querySelector("[data-pg1-product-grid]");
+     const filterGroup  = root.querySelector("[data-pg1-filter-group]");
+     const sortSelect   = root.querySelector("[data-pg1-sort-select]");
+     const resultCount  = root.querySelector("[data-pg1-results-count]");
+     const paginateEl   = root.querySelector("[data-pg1-pagination]");
+     const toastEl      = document.getElementById("spg-toast-" + SID )
+
+     // 7.2 Define State
+     // -- 3. State
+     let activeFilter  = "__all";
+     let activeSort    = "featured"
+     let currentPage   = 1;
+     let wishlisted    = new Set();
+     let cardVariants  = {} // { productId: variantIndex}
+     let cardSlides    = {} // { productId: slideIndex }
+     let toastTimer    = null;
+
+     // 7.3 Build in-memory product list
+     // 4. In-memory data --
+     const allProducts = [];
+     const seenIds     = new Set();
+
+     CONFIG.collections.forEach((col)=>{
+        col.products.forEach((p)=>{
+            if(!seenIds.has(p.id)){
+                seenIds.add(p.id);
+                allProducts.push(p);
+            }
+        })
+    })
+
+  //console.log(allProducts)
+
+    // 7.4 Write helpers
+    // -- 5. Helpers --
+  function formatMoney(cents){
+        return "$"  + (cents / 100).toFixed(2);
+    } 
+
+ function starsHTML(rating) {
+  return Array.from(
+    { length: 5 },
+    (_, i) =>
+      `<svg viewBox="0 0 12 12" fill="${i < Math.round(rating) ? "#FBBC04" : "#ddd"}">
+        <path d="M6 1l1.39 2.82 3.11.45-2.25 2.19.53 3.1L6 8 3.22 9.56l.53-3.1L1.5 4.27l3.11-.45z"/>
+      </svg>`,
+  ).join("");
+} 
+
+
+// 7.5 Write the data pipeline
+
+// -- 6 Data Pipeline
+
+function getProductList(){
+    let list;
+
+    if(activeFilter === '__all'){
+        list = [...allProducts]
+    }else{
+        list = allProducts.filter((p)=> p.collectionHandle === activeFilter)
+    }
+
+    switch(activeSort){
+        case 'price-asceding':
+          list.sort((a,b)=> a.price - b.price )
+            break;
+        case 'price-descending':
+             list.sort((a,b)=> b.price - a.price )
+            break;
+        case 'created-descending':
+        list.reverse();
+        break;
+    }
+    return list;
+}
+
+function getPagedList(list){
+    if(!CONFIG.enablePagination) return list
+    const start = (currentPage -1) * CONFIG.productsPerPage
+    return list.slice(start, start + CONFIG.productsPerPage)
+}
+
+// console.log("get-product-list:--",  getProductList());
+// console.log("getPagedList:",getPagedList(getProductList()))
+
+// 7.6. Card Builder 
+// -- 7 Card Builder
+function buildCardHTML(product){
+    // 7a. Resolve active variant
+    const varIdx         = cardVariants[product.id] ?? 0;  // set as empty object
+    const variant        = product.variants[varIdx] || product.variants[0];
+    const price          = variant ? variant.price: product.price
+    const compareAt      = variant ? variant.compareAtPrice : product.compareAtPrice
+    const isAvailable    = variant ? variant.available : product.available;
+    const isSale         = compareAt && compareAt > price;
+
+    // 7b. Images 
+    const images = product.images.length ? product.image : [product.featuredImage]
+
+    const slideIdx = cardSlides[product.id] || 0;
+
+    // 7c. Build each part as its own variable 
+
+    const badgeHTML   = buildBadgeHTML(product, variant, isAvailable, isSale);
+    const slidesHTML  = buildSlidesHTML(images,product);
+
+
+}
+
+
+// helper functions:
+
+function buildBadgeHTML(product, variant, isAvailable, isSale){
+    if(!CONFIG.enableBadges) return "";
+    if(!isAvailable) return `<span class="pg1-badge pg1-badge-sold" > Sold Out </span>` // product is not available 
+    if(isSale) return `<span class="pg1-badge pg1-badge-sale">Sale </span>`
+    if(product.tags?.includes("new")) return `<span class="pg1-badge pg1-badge-new"> New </span>`
+    return "";
+}
+
+
+function slidesHTML(images,product){
+    return images.map((url)=>{
+        return `
+            <div class="pg1-slide">
+                <a href="${product.url}"> 
+                    <img src="${url}" alt="${product.title}" loading="lazy" >
+                </a>
+            </div>
+        `
+    }).join("");
+}
+
+
+
+
+
+    
+     
+    })()
+</script>
+
+
+{% schema %}
+{
+    "name":"PG1 Product Grid 1",
+    "class": "pg1_section",
+    "max_blocks": 10,
+    "settings":[
+        {
+            "type": "range",
+            "id": "products_per_page",
+            "label": "Products per page",
+            "min": 4, "max": 24, "step": 4, "default":8
+        },
+        {"type": "checkbox", "id": "show_rating", "label": "Show rating", "default": true},
+        { "type": "checkbox", "id": "show_vendor",        "label": "Show vendor",        "default": true },
+        { "type": "checkbox", "id": "show_wishlist",      "label": "Show wishlist",      "default": true },
+        { "type": "checkbox", "id": "enable_pagination",  "label": "Enable pagination",  "default": true },
+        { "type": "checkbox", "id": "enable_filtering",   "label": "Enable filtering",   "default": true },
+        { "type": "checkbox", "id": "enable_sorting",     "label": "Enable sorting",     "default": true },
+        { "type": "checkbox", "id": "enable_badges",      "label": "Enable badges",      "default": true },
+        {
+           "type": "select",
+           "id": "cart_behaviour",
+           "label": "After add to cart",
+           "options": [
+              { "value": "drawer", "label": "Open cart drawer" },
+              { "value": "redirect","label": "Redirect to cart" },
+              { "value": "toast", "label": "Show toast only"}
+           ],
+           "default":"drawer"
+        }
+    ], 
+    "blocks": [
+        {
+            "type": "collection",
+            "name":"Collection",
+            "settings": [
+                {
+                    "type": "collection",
+                    "id": "collection",
+                    "label": "Collection"
+                }
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "PG1 Product Grid"
+        }
+    ]
+}
+{% endschema %}
