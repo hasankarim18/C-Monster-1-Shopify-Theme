@@ -1,0 +1,30 @@
+<article class="spg-card" data-pg1-l-product-id="{{ product.id }}" data-pg1-l-variant-id="{{ variant.id }}">
+  <form method="post" action="{{ routes.cart_add_url }}" novalidate data-spg-atc-form>
+    <div class="spg-card-media">
+      <div class="spg-slider" data-slider>${slidesHTML}</div>
+      <div class="spg-badges">${badgesHTML}</div>
+      ${arrowsHTML} ${wishlistHTML}
+      <div class="spg-quick-add">
+        <input type="hidden" name="form_type" value="product">
+        <input type="hidden" name="id" value="{{ variant.id }}" data-variant-input>
+        <input type="hidden" name="quantity" value="1">
+        <button
+          type="submit"
+          name="add"
+          class="spg-quick-add-btn ${atcClass}"
+          data-atc-btn
+        >
+          Add to cart
+        </button>
+      </div>
+    </div>
+    <div class="spg-card-body">
+      <a href="${product.url}" class="spg-card-link">
+        <p class="spg-card-brand">{{ product.vendor }}</p>
+
+        <p class="spg-card-title">{{ product.title }}</p>
+      </a>
+      ${optionsHTML} ${priceHTML}
+    </div>
+  </form>
+</article>
