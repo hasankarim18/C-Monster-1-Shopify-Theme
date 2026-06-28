@@ -299,7 +299,7 @@
 
                                         "id":           {{ product.id }},
                                         "handle":       {{ product.handle | json }},
-                                         "title": {{ product.title | json }},
+                                        "title":        {{ product.title | json }},
                                         "vendor":       {{ product.vendor | json }},
                                         "url":          {{ product.url | json }},
                                         "available":    {{ product.available | json }},
@@ -366,11 +366,13 @@
     const filterGroup = root.querySelector('[data-pg1-filter-group]');
     const sortSelect = root.querySelector('[data-pg1-sort-select]');
     const resultsCount = root.querySelector('[data-pg1-results-count]');
-    const paginateEl = root.querySelector('[data-pg1-pagination]');
+    const paginationEl = root.querySelector('[data-pg1-pagination]');
     const toastEl = document.getElementById('spg-toast-' + SID);
 
+    // console.log(paginationEl);
+
     // 7.2 Define State
-    // -- 3. State
+    // -- 3. State #state
     let activeFilter = '__all';
     let activeSort = 'featured';
     let currentPage = 1;
@@ -460,7 +462,7 @@
 
       // 7b. Images
       const images = product.images.length ? product.images : [product.featuredImage];
-     // console.log(product.images)
+      // console.log(product.images)
 
       const slideIdx = cardSlides[product.id] || 0;
 
@@ -476,14 +478,14 @@
       const actLabel = isAvailable ? '+ Add to Cart' : 'Sold Out';
       const actClass = isAvailable ? '' : 'sold-out';
 
-      console.log(product)
+      //  console.log(product);
 
       // 7d. Assemble
       return `
              <article class="pg1-card" data-pg1-product-id="${product.id}" data-pg1-variant-id="${variant?.id || ''}">
                 <div class="spg-card-media">
                     <div class="spg-slider" data-slider style="transform:translateX(-${slideIdx * 100}%)">
-                        ${slidesHTML}
+                        {slidesHTML}
                     </div>
                     <div class="spg-badges">${badgesHTML}</div>
                     ${arrowsHTML}
@@ -510,7 +512,7 @@
                     ${optionsHTML}
                     ${priceHTML}
                 </div>
-            </article>;        
+            </article>  
       `;
 
       /*********** buildCardHTML **************/
@@ -527,7 +529,8 @@
     }
 
     function buildSlidesHTML(images, product) {
-      {% comment %} return images
+      //  console.log('buildSlidesHTML',images)
+      return images
         .map((url) => {
           return `
             <div class="pg1-slide">
@@ -537,12 +540,12 @@
             </div>
         `;
         })
-        .join(''); {% endcomment %}
-        return `slide html`
+        .join('');
+      //  return `slide html`;
     }
 
     function buildArrowsHTML(images, slideIdx) {
-     // if (images.length <= 1) return '';
+      // if (images.length <= 1) return '';
       return `
       <button class="spg-slider-arrow prev" data-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>‹</button>
       <button class="spg-slider-arrow next" data-slide-next ${
@@ -558,14 +561,15 @@
       const discount = isSale ? Math.round((1 - price / compareAt) * 100) : 0;
       return `
         <div class="pg1-card-price">
-          <span class="pg1-price-current" data-pg1-price-${formatMoney(compareAt)} >
+          <span class="pg1-price-current" data-pg1-price>
+            ${formatMoney(price)} 
             ${
               isSale
-                ? `<span class="pg1-price-original" data-pg1-compare >${formatMoney(compareAt)} </span>
-                   <span class="spg-price-save">−${discount}%</span>`
+                ? `<span class="pg1-price-original" data-pg1-compare>${formatMoney(compareAt)}</span>
+                  <span class="spg-price-save">−${discount}%</span>`
                 : '<span data-pg1-compare style="display:none"></span>'
             }
-             ${discount}
+            ${discount ? `<span class="spg-price-save">−${discount}%</span>` : ''}
           </span>
         </div>
       `;
@@ -577,12 +581,12 @@
       gridEl.innerHTML = Array.from(
         { length: CONFIG.productsPerPage },
         () => `
-      <div class="spg-skeleton">
-        <div class="spg-skeleton-media"></div>
-        <div class="spg-skeleton-body">
-          <div class="spg-skeleton-line w80"></div>
-          <div class="spg-skeleton-line w60"></div>
-          <div class="spg-skeleton-line w40"></div>
+      <div class="pg1-skeleton">
+        <div class="pg1-skeleton-media"></div>
+        <div class="pg1-skeleton-body">
+          <div class="pg1-skeleton-line w80"></div>
+          <div class="pg1-skeleton-line w60"></div>
+          <div class="g1-skeleton-line w40"></div>
         </div>
       </div>`
       ).join('');
@@ -610,10 +614,81 @@
           </div>
         `;
       } else {
-        gridEl.innerHTML = pagedList.map((p)=> buildCardHTML(p)).join('');
-        // render pagination
+        // below code is doing everything
+        gridEl.innerHTML = pagedList.map((p) => buildCardHTML(p)).join('');
+
+        // #bindCardEvents();
+      }
+
+      //  consol.log(enablePagination);
+
+      if (CONFIG.enablePagination && paginationEl) {
+        console.log(fullList);
+        console.log(fullList.length);
+        renderPagination(fullList.length);
+      } else {
+        paginationEl.innerHTML = 'No pagiantion';
       }
     } // render grid
+
+    // #renderPagination
+    function renderPagination(totalCount) {
+      const total = Math.ceil(totalCount / CONFIG.productsPerPage);
+      if (total <= 1) {
+        paginationEl.innerHTML = '';
+        return;
+      }
+      let html = '';
+
+      html += `<button class="pg1-page-btn" data-pg1-page-prev  ${currentPage === 1 ? 'disabled' : ''} > 
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>`;
+
+      for (let i = 1; i <= total; i++) {
+        html += `<button class="pg1-page-btn ${
+          i === currentPage ? 'active' : ''
+        }" data-pg1-page="${i}"  > ${i}  </button>`;
+      }
+
+      html += `
+      <button class="pg1-page-btn" data-pg1-page-next ${currentPage === total ? 'disabled' : ''}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>`;
+
+      paginationEl.innerHTML = html;
+
+      paginationEl.querySelectorAll('[data-pg1-page]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          currentPage = parseInt(btn.dataset.pg1Page);
+          console.log('pagination clicked');
+          renderGrid();
+          root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      const prevBtn = paginationEl.querySelector('[data-pg1-page-prev]');
+      const nextBtn = paginationEl.querySelector('[data-pg1-page-next]');
+      if (prevBtn)
+        prevBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderGrid();
+            root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      if (nextBtn)
+        nextBtn.addEventListener('click', () => {
+          if (currentPage < total) {
+            currentPage++;
+            renderGrid();
+            root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+    } // -- renderPagination
+
+    // optional #update_url
+
+    // #pagination
 
     renderGrid();
 
