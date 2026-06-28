@@ -145,9 +145,31 @@
      text-transform:uppercase;
    }
 
-  #spg-{{ sid }} .spg-badge-new   { background: var(--spg-ink); color: #fff; }
-  #spg-{{ sid }} .spg-badge-sale  { background: var(--spg-accent2); color: #fff; }
-  #spg-{{ sid }} .spg-badge-sold  { background: rgba(255,255,255,0.85); color: var(--spg-muted); backdrop-filter: blur(4px); }
+  #pg1-{{ sid }} .pg1-badge-new   { background: var(--spg-ink); color: #fff; }
+  #pg1-{{ sid }} .pg1-badge-sale  { background: var(--spg-accent2); color: #fff; }
+  #pg1-{{ sid }} .pg1-badge-sold  { background: rgba(255,255,255,0.85); color: var(--spg-muted); backdrop-filter: blur(4px); }
+
+
+  {% comment %} #card {% endcomment %}
+
+  #pg1-{{ sid }} .pg1-grid-wrapper{
+    width:100%;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+
+  }
+
+  #pg1-{{ sid }} .pg1-product-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:24px;
+    min-height:300px;
+
+  }
+
+  #pg1-{{ sid }} .pg1-card{
+
+  }
 
 
     /* phase 2 css goes here */
@@ -218,7 +240,7 @@
                     -%}
                   {% endcomment %}
 
-                  <div aria-hidden="true">
+                  <div style="display:none;" aria-hidden="true">
                     {% render 'pg1-product-card',
                       product: product,
                       sid: sid,
@@ -274,8 +296,10 @@
                                 {% for product in col.products %}
                                     {% unless forloop.first %}, {% endunless %}
                                     {
+
                                         "id":           {{ product.id }},
                                         "handle":       {{ product.handle | json }},
+                                         "title": {{ product.title | json }},
                                         "vendor":       {{ product.vendor | json }},
                                         "url":          {{ product.url | json }},
                                         "available":    {{ product.available | json }},
@@ -341,7 +365,7 @@
     const gridEl = root.querySelector('[data-pg1-product-grid]');
     const filterGroup = root.querySelector('[data-pg1-filter-group]');
     const sortSelect = root.querySelector('[data-pg1-sort-select]');
-    const resultCount = root.querySelector('[data-pg1-results-count]');
+    const resultsCount = root.querySelector('[data-pg1-results-count]');
     const paginateEl = root.querySelector('[data-pg1-pagination]');
     const toastEl = document.getElementById('spg-toast-' + SID);
 
@@ -435,14 +459,16 @@
       const isSale = compareAt && compareAt > price;
 
       // 7b. Images
-      const images = product.images.length ? product.image : [product.featuredImage];
+      const images = product.images.length ? product.images : [product.featuredImage];
+     // console.log(product.images)
 
       const slideIdx = cardSlides[product.id] || 0;
 
       // 7c. Build each part as its own variable
 
-      const badgeHTML = buildBadgeHTML(product, variant, isAvailable, isSale);
+      const badgesHTML = buildBadgeHTML(product, variant, isAvailable, isSale);
       const slidesHTML = buildSlidesHTML(images, product);
+      const arrowsHTML = buildArrowsHTML(images, slideIdx);
       const optionsHTML = buildOptionsHTML(product, variant);
       const priceHTML = buildPriceHTML(price, compareAt, isSale);
       const wishlistHTML = CONFIG.showWishlist ? `<button class="spg-wishlist-btn" data-wishlist-btn>♡</button>` : '';
@@ -450,10 +476,41 @@
       const actLabel = isAvailable ? '+ Add to Cart' : 'Sold Out';
       const actClass = isAvailable ? '' : 'sold-out';
 
+      console.log(product)
+
       // 7d. Assemble
       return `
-            
-        
+             <article class="pg1-card" data-pg1-product-id="${product.id}" data-pg1-variant-id="${variant?.id || ''}">
+                <div class="spg-card-media">
+                    <div class="spg-slider" data-slider style="transform:translateX(-${slideIdx * 100}%)">
+                        ${slidesHTML}
+                    </div>
+                    <div class="spg-badges">${badgesHTML}</div>
+                    ${arrowsHTML}
+                    ${wishlistHTML}
+                    <div class="spg-quick-add">
+                        <form method="post" action="/cart/add" novalidate data-spg-atc-form>
+                        <input type="hidden" name="form_type" value="product">
+                        <input type="hidden" name="id" value="${variant?.id || ''}" data-variant-input>
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" name="add"
+                            class="spg-quick-add-btn {atcClass}"
+                            data-atc-btn
+                            ${!isAvailable ? 'disabled' : ''}>
+                            {atcLabel}
+                        </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="spg-card-body">
+                    <a href="${product.url}" class="spg-card-link">
+                        ${CONFIG.showVendor ? `<p class="spg-card-brand">${product.vendor}</p>` : ''}
+                        <p class="spg-card-title">${product.title}</p>
+                    </a>
+                    ${optionsHTML}
+                    ${priceHTML}
+                </div>
+            </article>;        
       `;
 
       /*********** buildCardHTML **************/
@@ -469,8 +526,8 @@
       return '';
     }
 
-    function slidesHTML(images, product) {
-      return images
+    function buildSlidesHTML(images, product) {
+      {% comment %} return images
         .map((url) => {
           return `
             <div class="pg1-slide">
@@ -480,17 +537,85 @@
             </div>
         `;
         })
-        .join('');
+        .join(''); {% endcomment %}
+        return `slide html`
     }
 
     function buildArrowsHTML(images, slideIdx) {
-      if (images.length <= 1) return '';
+     // if (images.length <= 1) return '';
       return `
       <button class="spg-slider-arrow prev" data-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>‹</button>
       <button class="spg-slider-arrow next" data-slide-next ${
         slideIdx >= images.length - 1 ? 'disabled' : ''
       }>›</button>`;
     }
+
+    function buildOptionsHTML(product, variant) {
+      return `options (variant selctors) html`;
+    }
+
+    function buildPriceHTML(price, compareAt, isSale) {
+      const discount = isSale ? Math.round((1 - price / compareAt) * 100) : 0;
+      return `
+        <div class="pg1-card-price">
+          <span class="pg1-price-current" data-pg1-price-${formatMoney(compareAt)} >
+            ${
+              isSale
+                ? `<span class="pg1-price-original" data-pg1-compare >${formatMoney(compareAt)} </span>
+                   <span class="spg-price-save">−${discount}%</span>`
+                : '<span data-pg1-compare style="display:none"></span>'
+            }
+             ${discount}
+          </span>
+        </div>
+      `;
+    }
+
+    // 7.7 Write renderGrid and renderPagination
+    // -- 8. render
+    function renderSkeletons() {
+      gridEl.innerHTML = Array.from(
+        { length: CONFIG.productsPerPage },
+        () => `
+      <div class="spg-skeleton">
+        <div class="spg-skeleton-media"></div>
+        <div class="spg-skeleton-body">
+          <div class="spg-skeleton-line w80"></div>
+          <div class="spg-skeleton-line w60"></div>
+          <div class="spg-skeleton-line w40"></div>
+        </div>
+      </div>`
+      ).join('');
+    }
+
+    // render grid
+
+    function renderGrid() {
+      const fullList = getProductList();
+      const pagedList = getPagedList(fullList);
+
+      // update count
+      if (resultsCount) {
+        resultsCount.textContent = `${fullList.length} product${fullList.length !== 1 ? 's' : ''}`;
+      }
+
+      // Render card or empty state
+
+      if (pagedList.length === 0) {
+        gridEl.innerHTML = `
+          <div class="pg1-empty">
+            <div class="pg1-empty-icon">🔍</div>
+            <h3>No products found</h3>
+            <p>Try a different filter.</p>
+          </div>
+        `;
+      } else {
+        gridEl.innerHTML = pagedList.map((p)=> buildCardHTML(p)).join('');
+        // render pagination
+      }
+    } // render grid
+
+    renderGrid();
 
     /****************************************************************/
     //// IFFE ENDS HERE
