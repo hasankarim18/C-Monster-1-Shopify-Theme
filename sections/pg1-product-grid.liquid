@@ -184,10 +184,17 @@
      box-shadow: 0 20px 48px rgba(0,0,0,0.1)
    }
 
+   #pg1-{{ sid }} .pg1-card-body{
+    padding: 16px 18px;
+  }
+
    /** #image_slider */
 
    #pg1-{{ sid }} .pg1-card-media{
-
+       position: relative;
+        overflow: hidden;
+        aspect-ratio: 3/3.5;
+        background: #f0f0ec;
    }
 
    /** #swatches #options field */
@@ -545,15 +552,15 @@
       // 7d. Assemble
       return `
              <article class="pg1-card" data-pg1-product-id="${product.id}" data-pg1-variant-id="${variant?.id || ''}">
-                <div class="spg-card-media">
-                    <div class="spg-slider" data-slider style="transform:translateX(-${slideIdx * 100}%)">
+                <div class="pg1-card-media">
+                    <div class="pg1-slider" data-pg1-slider style="transform:translateX(-${slideIdx * 100}%)">
                         {slidesHTML}
                     </div>
-                    <div class="spg-badges">${badgesHTML}</div>
+                    <div class="pg1-badges">${badgesHTML}</div>
                     ${arrowsHTML}
                     ${wishlistHTML}
-                    <div class="spg-quick-add">
-                        <form method="post" action="/cart/add" novalidate data-spg-atc-form>
+                    <div class="pg1-quick-add">
+                        <form method="post" action="/cart/add" novalidate data-pg1-atc-form>
                         <input type="hidden" name="form_type" value="product">
                         <input type="hidden" name="id" value="${variant?.id || ''}" data-variant-input>
                         <input type="hidden" name="quantity" value="1">
@@ -566,8 +573,8 @@
                         </form>
                     </div>
                 </div>
-                <div class="spg-card-body">
-                    <a href="${product.url}" class="spg-card-link">
+                <div class="pg1-card-body">
+                    <a href="${product.url}" class="pg1-card-link">
                         ${CONFIG.showVendor ? `<p class="spg-card-brand">${product.vendor}</p>` : ''}
                         <p class="spg-card-title">${product.title}</p>
                     </a>
@@ -635,17 +642,18 @@
               if (isColor) {
                 // Use CSS background color as fallback (Shopify metafields can provide swatch images, but we use color name here)
                 return `<span class="pg1-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
-                  style="background:${val.toLowerCase().replace(/\s+/g, '')}"
-                  title="${val}"
-                  data-opt-idx="${index}"
-                  data-opt-val="${val}"></span>`;
+                      style="background:${val.toLowerCase().replace(/\s+/g, '')}"
+                      title="${val}"
+                      data-opt-idx="${index}"
+                      data-opt-val="${val}"></span>`;
               } else {
                 return `<span class="pg1-text-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
-                  data-opt-idx="${index}"
-                  data-opt-val="${val}">${val}</span>`;
+                      data-opt-idx="${index}"
+                      data-opt-val="${val}">${val}</span>`;
               }
             })
             .join('');
+          /* ‍swatcHTML endsh here */
 
           return `
               <div class="pg1-option-group">
