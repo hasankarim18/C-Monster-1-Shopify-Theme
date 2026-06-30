@@ -202,17 +202,37 @@
   }
 
    #pg1-{{ sid }} .pg1-swatches{
-    width:22px; height:22px; border-radius:50%;
-    border:2px solid transparent;
-    outline:1px solid rgba(0,0,0,0.12);
-    cursor:pointer;
+    display:flex; gap:6px;flex-wrap:wrap;
+  }
+
+   #pg1-{{ sid }} .pg1-swatch{
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid transparent;
+    outline: 1px solid rgba(0,0,0,0.12);
+    cursor: pointer;
     transition: border-color var(--spg-trans), outline-color var(--spg-trans), box-shadow var(--spg-trans);
     position: relative; overflow: hidden;
     flex-shrink: 0;
   }
 
-   #pg1-{{ sid }} .pg1-swatch{}
-   #pg1-{{ sid }} .pg1-text-swatch{}
+  #pg1-{{ sid }} .pg1-swatch img { width: 100%; height: 100%; object-fit: cover; }
+
+  #pg1-{{ sid }} .pg1-swatch:hover{
+    outline-color: rgba(0,0,0,0.35);
+    box-shadow: 0 0 0 2px var(--spg-surface), 0 0 0 4px var(--spg-ink);
+  }
+
+  #pg1-{{ sid }} .pg1-swatch.active {
+    outline-color: transparent;
+    box-shadow: 0 0 0 2px var(--spg-surface), 0 0 0 4px var(--spg-ink);
+  }
+
+
+
+
+
+
+  #pg1-{{ sid }} .pg1-text-swatch{}
 
 
      /* phase 2 css goes here */
@@ -604,30 +624,34 @@
       return product.options
         .map((optName, index) => {
           const values = [...new Set(product.variants.map((v) => v['option' + (index + 1)]).filter(Boolean))];
-
           const isColor = /color|colour/i.test(optName);
-
           const swatchesHTML = values
             .map((val) => {
-              const isActive = variant?.['option' + (index + 1)] === val;
-              const available = product.variants
-                .filter((v) => v['option' + (index + 1)] === val)
-                .some((v) => v.available);
+              // Check if any variant with this option value is available
+              const variantsWithVal = product.variants.filter((v) => v['option' + (index + 1)] === val);
+              const anyAvailable = variantsWithVal.some((v) => v.available);
+              const isActive = variant && variant['option' + (index + 1)] === val;
 
               if (isColor) {
-                return `<span class="pg1-swatch ${isActive ? 'active' : ''} ${!available ? 'unavailable' : ''}"
-            style="background:${val.toLowerCase().replace(/\s/g, '')};display:block;width:22px;height:22px;"
-            data-pg1-opt-idx="${index}" data-pg1-opt-val="${val}" title="${val}"></span>`;
+                // Use CSS background color as fallback (Shopify metafields can provide swatch images, but we use color name here)
+                return `<span class="pg1-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                  style="background:${val.toLowerCase().replace(/\s+/g, '')}"
+                  title="${val}"
+                  data-opt-idx="${index}"
+                  data-opt-val="${val}"></span>`;
+              } else {
+                return `<span class="pg1-text-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                  data-opt-idx="${index}"
+                  data-opt-val="${val}">${val}</span>`;
               }
-              return `<span class="pg1-text-swatch ${isActive ? 'active' : ''} ${!available ? 'unavailable' : ''}"
-          data-pg1-opt-idx="${index}" data-pg1-opt-val="${val}">${val}</span>`;
             })
             .join('');
 
-          return `<div class="pg1-option-group">
-        <div class="pg1-option-label">${optName}</div>
-          <div class="pg1-swatches">${swatchesHTML}</div>
-        </div>`;
+          return `
+              <div class="pg1-option-group">
+                <div class="pg1-option-label">${optName}</div>
+                <div class="pg1-swatches">${swatchesHTML}</div>
+              </div>`;
         })
         .join('');
     }
