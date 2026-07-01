@@ -428,7 +428,16 @@
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
                          {% for value in option.values %}
-                         
+                           {% if value.swatch.image != null %}
+                             <label>
+                                {{ value.name }}
+                                {% assign bg_color = value.name %} <br>
+                                {% if value.swatch.color != null %}
+                                  {% assign bg_color = value.swatch.color %}
+                                {% endif %}
+                                <img style="width:30x;height:30px;" width="" height="" src="{{ value.swatch.image | image_url }}" >
+                              </label>
+                           {% endif %}
                            <label>
                               {{ value.name }}
                               {% assign bg_color = value.name %} <br>
