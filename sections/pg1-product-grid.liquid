@@ -428,9 +428,10 @@
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
                          {% for value in option.values %}
-                          {{ value | json }}
+                         
                            <label>
                               {{ value.name }}
+                              <input> 
                            </label>
                            {{ value.swatch.color }}
                          {% endfor %}
