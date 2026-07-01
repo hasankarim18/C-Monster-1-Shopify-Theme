@@ -427,6 +427,7 @@
                     {{product.title }}
                     {%- for option in product.options_with_values -%}
                       {%- for value in option.values -%}
+                        {{ value.name }}
                         <br>
                         {{ value.swatch.color }}
                       {%- endfor -%}
