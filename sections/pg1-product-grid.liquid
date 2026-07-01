@@ -423,7 +423,8 @@
                       </div>
                     </div>
                   {% endcomment %}
-                  <div>
+                  <div sytle="display:none;">
+                
                   <h4>  {{product.title }} </h4>
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
@@ -453,6 +454,7 @@
                          {% endfor %}
                       {% endif %}
                     {%- endfor -%}
+                
                   </div>
 
                   <div style="display:none;" aria-hidden="true">
