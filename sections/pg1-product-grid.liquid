@@ -424,6 +424,7 @@
                     </div>
                   {% endcomment %}
                   <div>
+                    {{ product.title }}
                     {%- for option in product.options_with_values -%}
                       {%- for value in option.values -%}
                         <br>
