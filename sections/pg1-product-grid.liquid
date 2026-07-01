@@ -424,10 +424,11 @@
                     </div>
                   {% endcomment %}
                   <div>
-                    {{product.title }}
+                  <h4>  {{product.title }} </h4>
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
                          {% for value in option.values %}
+                          {{ value | json }}
                            {{ value.swatch.color }}
                          {% endfor %}
                       {% endif %}
