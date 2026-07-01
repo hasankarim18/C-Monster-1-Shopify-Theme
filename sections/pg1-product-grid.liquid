@@ -426,14 +426,13 @@
                   <div>
                     {{product.title }}
                     {%- for option in product.options_with_values -%}
-                      {% if option.name == 'color' %}
-                         {%- for value in option.values -%}
-                       
+                      {%- for value in option.values -%}
+                        {% if value.name == 'color' %}
+                          {{ value.name }}
+                        {% endif %}
                         <br>
                         {{ value.swatch.color }}
                       {%- endfor -%}
-                      {% endif %}
-                     
                     {%- endfor -%}
                   </div>
 
