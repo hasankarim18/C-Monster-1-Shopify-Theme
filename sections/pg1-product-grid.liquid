@@ -439,14 +439,14 @@
                               </label>
                             {% else %}
                                <label>
-                              {{ value.name }}
-                              {% assign bg_color = value.name %} <br>
-                              {% if value.swatch.color != null %}
-                                {% assign bg_color = value.swatch.color %}
-                              {% endif %}
-                              <input type="radio" readonly name="{{option.name }}"
-                                 value="{{value.name }}" style="width:20px;height:20px;border-radius:50%;background:{{bg_color }}" > 
-                           </label>
+                                {{ value.name }}
+                                {% assign bg_color = value.name %} <br>
+                                {% if value.swatch.color != null %}
+                                  {% assign bg_color = value.swatch.color %}
+                                {% endif %}
+                                <input type="radio" readonly name="{{option.name }}"
+                                  value="{{value.name }}" style="width:20px;height:20px;border-radius:50%;background:{{bg_color }}" > 
+                              </label>
                            {% endif %}
                          
                           
