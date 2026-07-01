@@ -431,7 +431,11 @@
                          
                            <label>
                               {{ value.name }}
-                              <input> 
+                              {% assign bg_color = value.name %}
+                              {% if value.swatch.color != null %}
+                                {% assign bg_color = value.swatch.color %}
+                              {% endif %}
+                              <input value="{{value.name }}" style='background-color:{{bg_color }} > 
                            </label>
                            {{ value.swatch.color }}
                          {% endfor %}
