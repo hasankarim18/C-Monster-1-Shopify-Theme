@@ -424,22 +424,13 @@
                     </div>
                   {% endcomment %}
                   <div>
-                    {{ product.title }}
-                    {% for option in product.options_with_values %}
-                      {% if option.name == 'Color' %}
-                        {% for value in option.values %}
-                          {% assign swatch = value.swatch %}
-                          <label class="swatch">
-                            {% if swatch.image %}
-                              <span style="background-image: url({{ swatch.image | image_url: width: 50 }});"></span>
-                            {% elsif swatch.color %}
-                              <span style="background-color: {{ swatch.color }};"></span>
-                            {% endif %}
-                            <input type="radio" name="{{ option.name }}" value="{{ value }}">
-                          </label>
-                        {% endfor %}
-                      {% endif %}
-                    {% endfor %}
+                    {{product.title }}
+                    {%- for option in product.options_with_values -%}
+                      {%- for value in option.values -%}
+                        <br>
+                        {{ value.swatch.color }}
+                      {%- endfor -%}
+                    {%- endfor -%}
                   </div>
 
                   <div style="display:none;" aria-hidden="true">
