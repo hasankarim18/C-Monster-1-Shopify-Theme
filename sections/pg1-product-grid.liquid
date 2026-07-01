@@ -429,6 +429,9 @@
                       {% if option.name == 'Color' %}
                          {% for value in option.values %}
                           {{ value | json }}
+                           <label>
+                              {{ value.name }}
+                           </label>
                            {{ value.swatch.color }}
                          {% endfor %}
                       {% endif %}
