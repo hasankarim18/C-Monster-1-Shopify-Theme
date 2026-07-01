@@ -424,37 +424,45 @@
                     </div>
                   {% endcomment %}
                   <div style="display:none;">
-                
-                  <h4>  {{product.title }} </h4>
+                    <h4>{{ product.title }}</h4>
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
-                         {% for value in option.values %}
-                           {% if value.swatch.image != null %}
-                             <label>
-                                {{ value.name }}
-                                {% assign bg_color = value.name %} <br>
-                                {% if value.swatch.color != null %}
-                                  {% assign bg_color = value.swatch.color %}
-                                {% endif %}
-                                <img style="width:30px;height:30px;" width="30" height="30" src="{{ value.swatch.image | image_url }}" >
-                              </label>
-                            {% else %}
-                               <label>
-                                {{ value.name }}
-                                {% assign bg_color = value.name %} <br>
-                                {% if value.swatch.color != null %}
-                                  {% assign bg_color = value.swatch.color %}
-                                {% endif %}
-                                <input type="radio" readonly name="{{option.name }}"
-                                  value="{{value.name }}" style="width:20px;height:20px;border-radius:50%;background:{{bg_color }}" > 
-                              </label>
-                           {% endif %}
-                         
-                          
-                         {% endfor %}
+                        {% for value in option.values %}
+                          {% if value.swatch.image != null %}
+                            <label>
+                              {{ value.name }}
+                              {% assign bg_color = value.name %}
+                              <br>
+                              {% if value.swatch.color != null %}
+                                {% assign bg_color = value.swatch.color %}
+                              {% endif %}
+                              <img
+                                style="width:30px;height:30px;"
+                                width="30"
+                                height="30"
+                                src="{{ value.swatch.image | image_url }}"
+                              >
+                            </label>
+                          {% else %}
+                            <label>
+                              {{ value.name }}
+                              {% assign bg_color = value.name %}
+                              <br>
+                              {% if value.swatch.color != null %}
+                                {% assign bg_color = value.swatch.color %}
+                              {% endif %}
+                              <input
+                                type="radio"
+                                readonly
+                                name="{{option.name }}"
+                                value="{{value.name }}"
+                                style="width:20px;height:20px;border-radius:50%;background:{{bg_color }}"
+                              >
+                            </label>
+                          {% endif %}
+                        {% endfor %}
                       {% endif %}
                     {%- endfor -%}
-                
                   </div>
 
                   <div style="display:none;" aria-hidden="true">
@@ -532,6 +540,26 @@
                                             {%- endfor %}
                                         ],
                                         "options":      {{ product.options | json }},
+                                        "options_with_values":{{ product.options_with_values | json }},
+                                         "options_with_values_details": [
+                                            {% for option in product.options_with_values %}
+                                              {% unless forloop.first %}, {% endunless %}
+                                              {
+                                                "name": {{ option.name | json }},
+                                                "values": [
+                                                  {% for value in option.values %}
+                                                    {% unless forloop.first %}, {% endunless %}
+                                                    {
+                                                      "type":         {{ option.name | json }},
+                                                      "name":         {{ value.name | json }},
+                                                      "swatch_image": {{ value.swatch.image  | default: '' | json }},
+                                                      "swatch_color": {{ value.swatch.color | default: '' | json }}
+                                                    }
+                                                  {% endfor %}
+                                                ]
+                                              }
+                                            {% endfor %}
+                                          ],
                                         "variants": [
                                             {% for variant in product.variants %}
                                               {% unless forloop.first %},    {% endunless %}
@@ -768,49 +796,119 @@
         slideIdx >= images.length - 1 ? 'disabled' : ''
       }>›</button>`;
     }
+     
 
-    function buildOptionsHTML(product, variant) {
-      if (!product.options?.length) return '';
-      if (product.options.length === 1 && product.options[0] === 'Title') return '';
+    // #buildOptionsHTML 
+  function buildOptionsHTML(product, variant) {
+  if (!product.options?.length) return '';
+  if (product.options.length === 1 && product.options[0] === 'Title') return '';
 
-      //   console.log('----', product.options);
-      // console.log('product variants:', product.variants);
-      return product.options
-        .map((optName, index) => {
-          const values = [...new Set(product.variants.map((v) => v['option' + (index + 1)]).filter(Boolean))];
-          const isColor = /color|colour/i.test(optName);
-          const swatchesHTML = values
-            .map((val) => {
-              // Check if any variant with this option value is available
-              const variantsWithVal = product.variants.filter((v) => v['option' + (index + 1)] === val);
-              const anyAvailable = variantsWithVal.some((v) => v.available);
-              const isActive = variant && variant['option' + (index + 1)] === val;
+  return product.options_with_values
+    .map((optName, index) => {
+      const values = [
+        ...new Set(
+          product.variants
+            .map(v => v['option' + (index + 1)])
+            .filter(Boolean)
+        )
+      ];
 
-              if (isColor) {
-                // Use CSS background color as fallback (Shopify metafields can provide swatch images, but we use color name here)
-                return `<span class="pg1-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
-                      style="background:${val.toLowerCase().replace(/\s+/g, '')}"
-                      title="${val}"
-                      data-opt-idx="${index}"
-                      data-opt-val="${val}"></span>`;
-              } else {
-                return `<span class="pg1-text-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
-                      data-opt-idx="${index}"
-                      data-opt-val="${val}">${val}</span>`;
-              }
-            })
-            .join('');
-          /* ‍swatcHTML endsh here */
+      let swatchesHTML = '';
 
-          return `
-              <div class="pg1-option-group">
-                <div class="pg1-option-label">${optName}</div>
-                <div class="pg1-swatches">${swatchesHTML}</div>
-              </div>`;
-        })
-        .join('');
-    }
+      if (/color|colour/i.test(optName.name)) {
+        swatchesHTML = product.options_with_values_details
+          .map((details) => {
+              
+          return  details.values.map((val)=>{
+                    const variantsWithVal = product.variants.filter(
+                    v => v['option' + (index + 1)] === val.name
+                  );                
+              //    console.log(val.swatch.color)
+                  const anyAvailable = variantsWithVal.some(v => v.available);
+                  const isActive =
+                    variant && variant['option' + (index + 1)] === val.name;                   
+              // console.log(val)
+                if(val.type == 'Color'){
+                
+                  console.log(val)
+                  if(val.swatch_color === '' && val.swatch_image === ''){
+                     return `
+                      <span
+                        class=" ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                        style="background:${val.name};color:black;"
+                        title="${val}"
+                        data-pg1-opt-idx="${index}"
+                        data-pg1-opt-val="${val.name}">
+                       nn
+                      ${val.name}                  
+                      </span>
+                    `; 
+                  }else if(val.swatch_color !== '' && val.swatch_image !== ''){
+                    return `
+                      <span
+                        class=" ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                        style=""
+                        title="${val}"
+                        data-pg1-opt-idx="${index}"
+                        data-pg1-opt-val="${val.name}">
+                        <img style="width:30px;height:30px" src="${val.swatch_image}" >
+                                      
+                      </span>
+                    `; 
+                  }else{
+                     return `
+                      <span
+                        class=" ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                        style="background:${val.swatch_color};color:black;"
+                        title="${val}"
+                        data-pg1-opt-idx="${index}"
+                        data-pg1-opt-val="${val.name}">
+                        else
+                      ${val.name}                  
+                      </span>
+                    `; 
+                  }
 
+                 
+                }// val.type
+
+                })
+                .join('');
+            
+       }).join("")
+          
+      } else {
+        swatchesHTML = values
+          .map((val) => {
+            const variantsWithVal = product.variants.filter(
+              v => v['option' + (index + 1)] === val
+            );
+
+            const anyAvailable = variantsWithVal.some(v => v.available);
+            const isActive =
+              variant && variant['option' + (index + 1)] === val;
+
+            return `
+              <span
+                class="pg1-text-swatch ${isActive ? 'active' : ''} ${!anyAvailable ? 'unavailable' : ''}"
+                data-pg1-opt-idx="${index}"
+                data-pg1-opt-val="${val}">
+                ${val}
+              </span>
+            `;
+          })
+          .join('');
+      }
+
+      return `
+        <div class="pg1-option-group">
+          <div class="pg1-option-label">${optName.name}</div>
+          <div class="pg1-swatches">${swatchesHTML}</div>
+        </div>
+      `;
+    })
+    .join('');
+}
     function buildPriceHTML(price, compareAt, isSale) {
       const discount = isSale ? Math.round((1 - price / compareAt) * 100) : 0;
       return `
@@ -956,19 +1054,14 @@
         const images   = product.images.length ? product.images : [product.featuredImage];
         const sliderEl =  card.querySelector('[data-pg1-slider]'); // data-pg1-slider
 
-        // slider Arrows
-
-
-
-
-
       });
     } // bindCardEvents
 
+    
 
     {% comment %} ************************************ {% endcomment %}
     // ##renderGrid();
-  //  renderGrid();
+    renderGrid();
 
     /****************************************************************/
     //// IFFE ENDS HERE
