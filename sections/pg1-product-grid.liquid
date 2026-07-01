@@ -435,7 +435,7 @@
                               {% if value.swatch.color != null %}
                                 {% assign bg_color = value.swatch.color %}
                               {% endif %}
-                              <input value="{{value.name }}" style='background-color:"{{bg_color }}"' > 
+                              <input value="{{value.name }}" style="width:20px;height:20px;border-radius:50%;background:{{bg_color }}" > 
                            </label>
                            {{ value.swatch.color }}
                          {% endfor %}
