@@ -308,6 +308,43 @@
     100% { background-position: -200% 0; }
   }
 
+  {% comment %} #addtocard {% endcomment %}
+
+  #pg1-{{ sid }} .pg1-quick-add {
+    position:absolute;
+    bottom:0; left:0;right:0;
+    padding:12px;
+    {% comment %} transform:translateY(100%); {% endcomment %}
+    transition:transform var(--spg-trans);
+    z-index:3;
+  }
+
+  #pg1-{{ sid }} .pg1-card:hover .pg1-quick-add { transform:translateY(0); }
+
+
+  #pg1-{{ sid }} .pg1-quick-add-btn {
+    width:100%;
+    padding:11px;
+    background: rgba(26,26,26,0.9);
+    backdrop-filter: blur(8px);
+     color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--spg-trans);
+  }
+
+  #pg1-{{ sid }} .pg1-quick-add-btn:hover   { background: var(--spg-accent); }
+  #pg1-{{ sid }} .pg1-quick-add-btn.added   { background: #1a8f5a; }
+  #pg1-{{ sid }} .pg1-quick-add-btn.loading { background: #555; cursor: wait; }
+  #pg1-{{ sid }} .pg1-quick-add-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+  #pg1-{{ sid }} .pg1-quick-add-btn.sold-out { background: rgba(100,100,100,0.8); cursor: not-allowed; }
+
 
        /* phase 2 css goes here */
 </style>
@@ -386,6 +423,14 @@
                       </div>
                     </div>
                   {% endcomment %}
+                  <div>
+                    {%- for option in product.options_with_values -%}
+                      {%- for value in option.values -%}
+                        <br>
+                        {{ value.swatch.color }}
+                      {%- endfor -%}
+                    {%- endfor -%}
+                  </div>
 
                   <div style="display:none;" aria-hidden="true">
                     {% render 'pg1-product-card',
@@ -621,7 +666,7 @@
       const priceHTML = buildPriceHTML(price, compareAt, isSale);
       const wishlistHTML = CONFIG.showWishlist ? `<button class="spg-wishlist-btn" data-wishlist-btn>♡</button>` : '';
 
-      const actLabel = isAvailable ? '+ Add to Cart' : 'Sold Out';
+      const atcLabel = isAvailable ? '+ Add to Cart' : 'Sold Out';
       const actClass = isAvailable ? '' : 'sold-out';
 
       //  console.log(product);
@@ -631,7 +676,7 @@
              <article class="pg1-card" data-pg1-product-id="${product.id}" data-pg1-variant-id="${variant?.id || ''}">
                 <div class="pg1-card-media">
                     <div class="pg1-slider" data-pg1-slider style="transform:translateX(-${slideIdx * 100}%)">
-                        {slidesHTML}
+                        ${slidesHTML}
                     </div>
                     <div class="pg1-badges">${badgesHTML}</div>
                     ${arrowsHTML}
@@ -642,10 +687,10 @@
                         <input type="hidden" name="id" value="${variant?.id || ''}" data-variant-input>
                         <input type="hidden" name="quantity" value="1">
                         <button type="submit" name="add"
-                            class="spg-quick-add-btn {atcClass}"
-                            data-atc-btn
+                            class="pg1-quick-add-btn {atcClass}"
+                            data-pg1-atc-btn
                             ${!isAvailable ? 'disabled' : ''}>
-                            {atcLabel}
+                            ${atcLabel}
                         </button>
                         </form>
                     </div>
@@ -693,8 +738,8 @@
     function buildArrowsHTML(images, slideIdx) {
       // if (images.length <= 1) return '';
       return `
-      <button class="spg-slider-arrow prev" data-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>‹</button>
-      <button class="spg-slider-arrow next" data-slide-next ${
+      <button class="pg1-slider-arrow prev" data-pg1-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>‹</button>
+      <button class="pg1-slider-arrow next" data-pg1-slide-next ${
         slideIdx >= images.length - 1 ? 'disabled' : ''
       }>›</button>`;
     }
@@ -805,7 +850,7 @@
         // below code is doing everything
         gridEl.innerHTML = pagedList.map((p) => buildCardHTML(p)).join('');
 
-        // #bindCardEvents();
+        bindCardEvents();
       }
 
       //  consol.log(enablePagination);
@@ -877,13 +922,28 @@
     // #bind-card-level-events
 
     function bindCardEvents() {
-      gridEl.querySelectorAll('').forEach((card) => {
+      gridEl.querySelectorAll('.pg1-card').forEach((card) => {
         // data-pg1-product-id
-        const pid = parseInt();
+        const pid = parseInt(card.dataset.pg1ProductId); // data-pg1-product-id
+        const product = allProducts.find((p)=> p.id === pid);
+        if(!product) return;
+       
+        const images   = product.images.length ? product.images : [product.featuredImage];
+        const sliderEl =  card.querySelector('[data-pg1-slider]'); // data-pg1-slider
+
+        // slider Arrows
+
+
+
+
+
       });
     } // bindCardEvents
+
+
+    {% comment %} ************************************ {% endcomment %}
     // ##renderGrid();
-    renderGrid();
+  //  renderGrid();
 
     /****************************************************************/
     //// IFFE ENDS HERE
