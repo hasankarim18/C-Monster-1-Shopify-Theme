@@ -197,6 +197,61 @@
               background: #f0f0ec;
          }
 
+         #pg1-{{ sid }} .pg1-slider{
+           display:flex;
+           width:100%;
+           height:100%;
+           transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);
+
+        }
+
+        #pg1-{{ sid }} .pg1-slide{
+          flex: 0 0 100%; /* do not grow, do not shrink, always 100% wide */
+          width:100%;
+          height:100%;
+        }
+
+        #pg1-{{ sid }} .pg1-slide img{
+          width:100%;
+          height:100%;
+          object-fit:cover;
+          display:block;
+          transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+
+        }
+
+        #pg1-{{ sid }} .pg1-card:hover .pg1-slide img{ transform:scale(1.06); }
+
+        /*  #slider_arrow_css */
+
+        #pg1-{{ sid }} .pg1-slider-arrow {
+          position:absolute;
+          top:50%;
+          transform:translateY(-50%);
+          width:30px;
+          height:30px;
+          border-radius:50%;
+          background:rgba(255,255,255, 0.85);
+          backdrop-filter:blur(6px);
+          border:none;
+          cursor:pointer;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          opacity: 1;
+          transition: opacity var(--spg-trans);
+          z-index: 3;
+          color: var(--spg-ink);
+        }
+
+        #pg1-{{ sid }} .pg1-card:hover .pg1-slider-arrow { opacity:1 }
+
+        #pg1-{{ sid }} .pg1-slider-arrow.prev { left:8px; }
+        #pg1-{{ sid }} .pg1-slider-arrow.next { right:8px; }
+        #pg1-{{ sid }} .pg1-slider-arrow { background:#fff; }
+        #pg1-{{ sid }} .pg1-slider-arrow[disabled] { opacity: 0.5 !important; pointer-events:none;background:rgba(204, 204, 204, 0.85); }
+
+
          /** #swatches #options field */
 
         #pg1-{{ sid }} .pg1-option-group{
@@ -346,6 +401,8 @@
         transition: background var(--spg-trans);
       }
 
+
+
       #pg1-{{ sid }} .pg1-quick-add-btn:hover   { background: var(--spg-accent); }
       #pg1-{{ sid }} .pg1-quick-add-btn.added   { background: #1a8f5a; }
       #pg1-{{ sid }} .pg1-quick-add-btn.loading { background: #555; cursor: wait; }
@@ -464,6 +521,9 @@
   .pg1-swatch-item > span:first-child.unavailable + span{
       opacity:.55;
   }
+
+
+
 
 
            /* phase 2 css goes here */
@@ -910,11 +970,17 @@
 
     function buildArrowsHTML(images, slideIdx) {
       // if (images.length <= 1) return '';
+      const leftChevron = "https://cdn.shopify.com/s/files/1/0744/7642/1210/files/left-chevron.png?v=1783058096"
+      const rightChevron = "https://cdn.shopify.com/s/files/1/0744/7642/1210/files/right-chevron.png?v=1783058096"
       return `
-      <button class="pg1-slider-arrow prev" data-pg1-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>‹</button>
+      <button class="pg1-slider-arrow prev" data-pg1-slide-prev ${slideIdx === 0 ? 'disabled' : ''}>
+        <img style="width:20px;height:20px;" src="${leftChevron}" loading="lazy">
+      </button>
       <button class="pg1-slider-arrow next" data-pg1-slide-next ${
         slideIdx >= images.length - 1 ? 'disabled' : ''
-      }>›</button>`;
+      }>
+         <img style="width:20px;height:20px;" src="${rightChevron}" loading="lazy">
+      </button>`;
     }
      
 
@@ -1173,12 +1239,131 @@
         const pid = parseInt(card.dataset.pg1ProductId); // data-pg1-product-id
         const product = allProducts.find((p)=> p.id === pid);
         if(!product) return;
+
+       
        
         const images   = product.images.length ? product.images : [product.featuredImage];
         const sliderEl =  card.querySelector('[data-pg1-slider]'); // data-pg1-slider
 
-      });
+        bindSlider(card, pid, images, sliderEl);
+        bindWishlist(card,pid);
+        bindSwatches(card, pid, product, images, sliderEl);
+        bindATC(card, pid); 
+        
+
+      }); // card loop end
     } // bindCardEvents
+
+
+    function bindSwatches(card, pid, product, images, sliderEl){
+    //  console.log('bind swatches')
+         card.querySelectorAll('[data-pg1-opt-idx]').forEach((swatch)=>{
+        if(swatch.classList.contains("unavailable")) return;
+
+        swatch.addEventListener("click", (e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const optIdx = parseInt(swatch.dataset.pg1OptIdx);
+          const optVal = swatch.dataset.pg1OptVal;
+
+          
+
+          // Build Current Selections across all options
+          const selections = {}
+          product.options.forEach((_,i)=>{
+            const active = card.querySelector(`[data-pg1-opt-idx="${i}"].active`)
+            if(active) selections[i] = active.dataset.pg1OptVal;
+           
+          })
+
+          selections[optIdx] = optVal;
+
+          // find matching variant
+        const match = product.variants.find((v) =>
+          product.options.every(
+            (_, i) => !selections[i] || v["option" + (i + 1)] === selections[i],
+          ),
+        );
+
+    
+      if(!match) return;
+   //   console.log(match)
+      // update state 
+      updateCardPrice(card, match);
+      updateCardATC(card,match);
+      updateCardBadges(card, match);
+      
+      if(match.featuredImage) {
+        const imgIdx = images.indexOf(match.featuredImage);
+        if(imgIdx > -1){
+          cardSlides[pid] = imgIdx;
+          sliderEl.style.transform = `translateX(-${imgIdx * 100}%)`
+        }
+      }
+      
+      // update active swatch
+      card
+          .querySelectorAll(`[data-pg1-opt-idx="${optIdx}"]`)
+          .forEach((s)=> s.classList.remove("active"));
+
+          swatch.classList.add("active");         
+
+        }); // ******** event listener
+
+        //********************
+      });     
+    }
+
+    function updateCardPrice(card, variant){
+       // const isSale 
+       console.log(variant)
+    }
+    function  updateCardATC(card,match){}
+    function  updateCardBadges(card, match){}
+       
+    // #bindSlider
+   function bindSlider(card,pid,images, sliderEl){
+  //  console.log('bindSlider')
+      function updateSlider(){
+        const idx = cardSlides[pid] || 0;   // states-> cardSlides = {};
+        // data-pg1-slide-prev | data-pg1-slide-next
+   //   console.log(images)
+
+        sliderEl.style.transform = `translateX(-${idx * 100}%)`;
+        card.querySelector("[data-pg1-slide-prev]").disabled = idx === 0;                       // data-pg1-slide-prev
+        card.querySelector("[data-pg1-slide-next]").disabled = idx >= images.length - 1;   
+
+      }
+
+      card.querySelector("[data-pg1-slide-prev]")?.addEventListener("click", (e)=> {
+        e.preventDefault();
+        e.stopPropagation();
+        cardSlides[pid] = Math.max(0, (cardSlides[pid] || 0) - 1);
+        updateSlider();
+      })
+
+      card.querySelector("[data-pg1-slide-next]")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        cardSlides[pid] = Math.min(images.length - 1, (cardSlides[pid] || 0) + 1);
+        updateSlider();
+      });
+    }
+  
+
+     // #bindWishlist
+
+    function bindWishlist(card, pid) {
+   
+    }
+  
+
+    {% comment %} #bindATC {% endcomment %}
+
+   function bindATC(card, pid){
+    
+    }
 
     
 
