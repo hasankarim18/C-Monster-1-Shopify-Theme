@@ -604,7 +604,6 @@
                     </div>
                   {% endcomment %}
                   <div style="display:none;">
-                   
                     <h4>{{ product.title }}</h4>
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
@@ -1563,6 +1562,54 @@
       toastEl.classList.add('show');
       toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
     }
+
+
+    {% comment %} 12. Toolbar events {% endcomment %}
+
+    // pg1-filter-pill
+
+    filterGroup?.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pg1-filter-pill")
+      if(!pill) return;
+
+      filterGroup.querySelectorAll(".pg1-filter-pill")
+      .forEach((p) => p.classList.remove("active") );
+
+      pill.classList.add("active");
+      activeFilter = pill.dataset.pg1Filter;
+      currentPage = 1;
+      renderSkeletons();
+      setTimeout(renderGrid, 120);
+    })
+
+    sortSelect?.addEventListener("change", () => {
+        activeSort = sortSelect.value;
+        currentPage = 1;
+        renderSkeletons();
+        setTimeout(renderGrid, 120);
+      });
+
+
+
+     (function restoreState() {
+      const params = new URLSearchParams(window.location.search);
+      const f = params.get('filter_' + SID);
+      const s = params.get('sort_' + SID);
+      const p = params.get('page_' + SID);
+      if (f) {
+        activeFilter = f;
+        if (filterGroup) {
+          filterGroup.querySelectorAll('.spg-filter-pill').forEach((pill) => {
+            pill.classList.toggle('active', pill.dataset.filter === f);
+          });
+        }
+      }
+      if (s) {
+        activeSort = s;
+        if (sortSelect) sortSelect.value = s;
+      }
+      if (p) currentPage = parseInt(p) || 1;
+    })();
 
 
     {% comment %} ************************************ {% endcomment %}
