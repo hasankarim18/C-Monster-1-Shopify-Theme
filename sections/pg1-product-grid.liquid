@@ -1538,15 +1538,18 @@
     console.log(newSection)
     console.log(oldSection)
 
+    const newCartItems = newSection.querySelector('.theme-drawer__dialog ')
+    const oldCartItems = oldSection.querySelector('.theme-drawer__dialog ')
 
-   if (newSection && oldSection) {
+
+   if (newCartItems && oldCartItems) {
       console.log('section found')
-      oldSection.replaceWith(newSection);
+      oldCartItems.replaceWith(newCartItems);
       // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
     }
-
+     
      if (typeof drawer.open === 'function') {
         drawer.open();
     } else {
