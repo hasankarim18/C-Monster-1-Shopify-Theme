@@ -1521,12 +1521,10 @@
         url      
     );
 
-    const sections = await response.json();
-   
+    const sections = await response.json();   
 
     const sectionHtml = sections[sectionId];
-    const doc   = new DOMParser().parseFromString(sectionHtml, 'text/html');
-  
+    const doc   = new DOMParser().parseFromString(sectionHtml, 'text/html');  
 
     const newSection = doc.querySelector(`#shopify-section-${sectionId}`)
     const oldSection = document.querySelector(`#shopify-section-${sectionId}`)
@@ -1566,7 +1564,6 @@
       toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
     }
 
-    
 
     {% comment %} ************************************ {% endcomment %}
     // ##renderGrid();
