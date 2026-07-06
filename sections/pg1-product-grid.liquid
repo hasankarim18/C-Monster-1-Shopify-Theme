@@ -1547,7 +1547,8 @@
 
    if (newCartItems && oldCartItems) {
       console.log('section found')
-      oldCartItems.replaceWith(newCartItems);
+      newCartItems.setAttribute('open','');
+      oldCartItems.innerHTML = newCartItems.innerHTML
       // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
