@@ -1527,12 +1527,20 @@
     }
 
     // 3. Try web component open() method
-    const drawer = document.querySelector('.theme-drawer__dialog');
-    console.log(typeof drawer.open)
-    if (drawer) {      
-    //  if (typeof drawer.open === 'function') { drawer.open(); return; }
-        drawer.open(); return;
-    //  drawer.setAttribute('open', '');
+        document.dispatchEvent(
+          new CustomEvent('cart:update', {
+            bubbles: true,
+            detail: {
+              data: {
+                itemCount: 1,
+                source: 'product-form-component'
+              }
+            }
+          })
+        );
+
+        // Open drawer
+        document.querySelector('cart-drawer-component')?.open();
 
     }else{
       console.log('drawer not found')
