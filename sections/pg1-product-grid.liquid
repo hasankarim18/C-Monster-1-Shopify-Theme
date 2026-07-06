@@ -1516,8 +1516,9 @@
     console.log(sectionId)
 
     // Fetch the rendered section HTML
+    const url = `${window.location.pathname}?sections=${sectionId}`
     const response = await fetch(
-        `${window.location.pathname}?sections=${sectionId}`,
+        url,
         {
             headers: {
                 Accept: 'application/json'
