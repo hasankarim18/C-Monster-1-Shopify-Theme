@@ -1513,6 +1513,7 @@
     }
 
     const sectionId = cartItems.dataset.sectionId;
+    console.log(sectionId)
 
     // Fetch the rendered section HTML
     const response = await fetch(
@@ -1524,33 +1525,13 @@
         }
     );
 
-    const sections = await response.json();
+    const responseText = await response.text();
 
-    if (!sections[sectionId]) {
-        console.error('Section HTML not returned');
-        return;
-    }
+    const html = new DOMParser().parseFromString(responseText, 'text/html');
 
-    // Parse returned HTML
-    const doc = new DOMParser().parseFromString(
-        sections[sectionId],
-        'text/html'
-    );
+    console.log(html)
 
-    // Replace the Shopify section
-    const newSection = doc.querySelector(`#shopify-section-${sectionId}`);
-    const oldSection = document.querySelector(`#shopify-section-${sectionId}`);
-
-    if (newSection && oldSection) {
-        oldSection.replaceWith(newSection);
-    }
-
-    // Open drawer
-    if (typeof drawer.open === 'function') {
-        drawer.open();
-    } else {
-        drawer.open = true;
-    }
+   
 }
 
     {% comment %} #toast {% endcomment %}
