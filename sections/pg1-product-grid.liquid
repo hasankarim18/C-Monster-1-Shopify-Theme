@@ -1454,12 +1454,12 @@
               btn.textContent = "+ Add to Cart";
           }, 2500);
 
-         // await refreshHorizonCart(data);
-           updateCartCount();
+          await refreshHorizonCart(data);
+
           if (CONFIG.cartBehavior === "redirect") window.location.href = "/cart";
           else if (CONFIG.cartBehavior === "drawer") openHorizonCartDrawer();
           showToast("✓ Added to cart");
-       
+
 
           }catch(err){
              btn.classList.remove("loading");
@@ -1474,54 +1474,35 @@
 
     // 10 cart integration
 
-   function updateCartCount(cartData) {
-      // Horizon uses section rendering — re-fetch the header cart icon section
-      const cartCountSelectors = [
-        '.cart-count', // Horizon cart bubble
-        '[data-cart-count]',
-        '.cart__count',
-        '#cart-icon-bubble',
-        '.js-cart-count',
-      ];
+    async function refreshHorizonCart(data) {
+      // header-actions__cart-icon header-actions__cart-icon--has-cart
+      // cart-bubble__text-count
+      // data-testid
+      // span -- class-- cart-bubble__text-count
+      const cartIcon = document.querySelector('cart-icon.header-actions__cart-icon')
+      const cartTextCount = cartIcon.querySelector('span.cart-bubble__text-count');
+      const cartBuble     = cartIcon.querySelector(".cart-bubble");
+      
+      const res = await fetch('/cart.js', {
+              headers: {accept: "application/json"}
+      })
 
-      // Re-fetch /cart.js and dispatch the Horizon CartUpdateEvent if available
-      fetch('/cart.js')
-        .then((r) => r.json())
-        .then((cart) => {
-          // Update any plain cart-count elements directly
-          cartCountSelectors.forEach((sel) => {
-            document.querySelectorAll(sel).forEach((el) => {
-              el.textContent = cart.item_count;
-              if (cart.item_count > 0) {
-                el.removeAttribute('hidden');
-                el.classList.remove('hidden');
-              }
-            });
-          });
+      const cart = await res.json();
+     // console.log(cart);
 
-          // Fire Horizon's internal CartUpdateEvent (Horizon 2025+)
-          import('@theme/events')
-            .then(({ CartUpdateEvent }) => {
-              const event = new CartUpdateEvent(cart, 'add', {
-                itemCount: cart.item_count,
-                source: 'hfp-section',
-                sections: {},
-              });
-              document.dispatchEvent(event);
-            })
-            .catch(() => {
-              // Older Horizon or non-Horizon theme — try a generic custom event
-              document.dispatchEvent(
-                new CustomEvent('cart:refresh', {
-                  bubbles: true,
-                  detail: { cart, openMiniCart: this.openDrawer },
-                })
-              );
-            });
-        });
-    }
+      // update header icon
+      cartTextCount.classList.remove("hidden")
+      cartBuble.classList.remove("visually-hidden")
+      setTimeout(()=>{
+        cartTextCount.innerText = cart.item_count;
+      }, 100)
 
-  
+      // update cart component
+   
+
+     
+    } // refreshhorizon cart
+
     function openHorizonCartDrawer(){}
 
 
