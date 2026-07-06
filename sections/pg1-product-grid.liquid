@@ -1533,9 +1533,18 @@
 
    
 
-  //  const newSection = html.querySelector('')
+    const newSection = html.querySelector('cart-items-component')
+    const oldSection = document.querySelector('cart-items-component')
 
-   
+   if (newSection && oldSection) {
+        oldSection.replaceWith(newSection);
+    }
+
+     if (typeof drawer.open === 'function') {
+        drawer.open();
+    } else {
+        drawer.open = true;
+    }
 
    
 }
