@@ -1537,7 +1537,9 @@
     const oldSection = document.querySelector('cart-items-component')
 
    if (newSection && oldSection) {
-        oldSection.replaceWith(newSection);
+        oldSection.innerHTML = newSection
+    }else{
+      console.log('htmls not found')
     }
 
      if (typeof drawer.open === 'function') {
