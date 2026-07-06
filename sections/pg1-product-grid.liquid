@@ -1507,21 +1507,6 @@
       console.log("openHorizonCartDrawer", data)
  
 
-    // 2. Try clicking the native cart icon/button to open the drawer
-    const selectors = [
-      '[data-cart-drawer-toggle]',
-      '[data-open-cart]',
-      'button[aria-controls="CartDrawer"]',
-      '#CartDrawerToggle',
-      '.js-cart-drawer-open',
-      'header-drawer [data-cart]',
-      'a[href="#cart-drawer"]'
-    ];
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el) { el.click(); return; }
-    }
-
       const cart = await fetch('/cart.js').then(r => r.json());
 
     // 3. Try web component open() method
