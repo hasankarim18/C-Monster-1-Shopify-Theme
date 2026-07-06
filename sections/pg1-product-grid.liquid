@@ -1513,10 +1513,11 @@
     }
 
     const sectionId = cartItems.dataset.sectionId;
-    console.log(sectionId)
+    console.log("sectionId:",sectionId)
 
     // Fetch the rendered section HTML
     const url = `${window.location.pathname}?sections=${sectionId}`
+    console.log('url:', url)
     const response = await fetch(
         url,
         {
