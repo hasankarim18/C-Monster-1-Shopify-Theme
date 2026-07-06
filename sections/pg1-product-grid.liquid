@@ -604,6 +604,14 @@
                     </div>
                   {% endcomment %}
                   <div style="display:none;">
+                    <product-form-component on:submit="/handleSubmit">
+                        {% form 'product', product %}
+                          <input type="hidden" name="form_type" value="product">
+                          <input type="hidden" name="id" value="${variant?.id || ''}" data-pg1-variant-input>
+                          <input type="hidden" name="quantity" value="1">
+                        {% endform %}
+                     </product-form-component>
+                    
                     <h4>{{ product.title }}</h4>
                     {%- for option in product.options_with_values -%}
                       {% if option.name == 'Color' %}
