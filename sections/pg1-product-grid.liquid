@@ -1519,19 +1519,16 @@
     const url = `${window.location.pathname}?sections=${sectionId}`
     console.log('url:', url)
     const response = await fetch(
-        url,
-        {
-            headers: {
-                Accept: 'application/json'
-            }
-        }
+        url      
     );
 
-    const responseText = await response.text();
+    const sections = await response.json();
+    console.log(sections)
 
-    const html = new DOMParser().parseFromString(responseText, 'text/html');
+    const sectionHtml = sections[sectionId];
+    const doc   = new DOMParser().parseFromString(sectionHtml, 'text/html');
 
-   console.log('html',html)
+   console.log('doc',doc)
 
    
 
@@ -1543,7 +1540,7 @@
 
 
    if (html && oldSection) {
-       oldSection.innerHTML = html.innerHTML
+      // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
     }
