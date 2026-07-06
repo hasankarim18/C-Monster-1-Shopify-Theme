@@ -1543,6 +1543,13 @@
         const drawer =  document.querySelector('#cart-drawer')
         console.log(typeof drawer)
          console.log(typeof drawer.open)
+         if (drawer) {      
+            if (typeof drawer.open === 'function') { drawer.open(); return; }
+          //  drawer.setAttribute('open', '');
+            console.log('drawer found')
+          }else{
+            console.log('drawer not found')
+          }
 
   }
 
