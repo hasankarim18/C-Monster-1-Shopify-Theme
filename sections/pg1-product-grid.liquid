@@ -1502,46 +1502,39 @@
 
      
     } // refreshhorizon cart
+    
+    async   function openHorizonCartDrawer() {
+    // 1. Horizon's product-form-component fires this event natively — replicate it
+    document.documentElement.dispatchEvent(
+      new CustomEvent('cart:refresh', { bubbles: true, detail: { openMiniCart: true } })
+    );
 
- async function openHorizonCartDrawer() {
+   
 
-      // 1. Horizon's product-form-component fires this event natively — replicate it
-      document.documentElement.dispatchEvent(
-        new CustomEvent('cart:refresh', { bubbles: true, detail: { openMiniCart: true } })
-      );
-
-      // 2. Try clicking the native cart icon/button to open the drawer
-      const selectors = [
-        '[data-cart-drawer-toggle]',
-        '[data-open-cart]',
-        'button[aria-controls="CartDrawer"]',
-        '#CartDrawerToggle',
-        '.js-cart-drawer-open',
-        'header-drawer [data-cart]',
-        'a[href="#cart-drawer"]',
-      ];
-      for (const sel of selectors) {
-        const el = document.querySelector(sel);
-        if (el) {
-          el.click();
-          return;
-        }
-      }
-
-      // 3. Try web component open() method
-      const drawer = document.querySelector('.cart-drawer');
-      console.log(drawer)
-      if (drawer) {
-        if (typeof drawer.open === 'function') {
-          drawer.open();
-          return;
-        }
-        drawer.setAttribute('open', '');
-      } else {
-        console.log('drawer not found');
-      }
+    // 2. Try clicking the native cart icon/button to open the drawer
+    const selectors = [
+      '[data-cart-drawer-toggle]',
+      '[data-open-cart]',
+      'button[aria-controls="CartDrawer"]',
+      '#CartDrawerToggle',
+      '.js-cart-drawer-open',
+      'header-drawer [data-cart]',
+      'a[href="#cart-drawer"]'
+    ];
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) { el.click(); return; }
     }
 
+    // 3. Try web component open() method
+    const drawer = document.querySelector('.cart-drawer');
+    if (drawer) {      
+      if (typeof drawer.open === 'function') { drawer.open(); return; }
+      drawer.setAttribute('open', '');
+    }else{
+      console.log('drawer not found')
+    }
+  }
 
     {% comment %} #toast {% endcomment %}
 
