@@ -1526,6 +1526,8 @@
       if (el) { el.click(); return; }
     }
 
+      const cart = await fetch('/cart.js').then(r => r.json());
+
     // 3. Try web component open() method
         document.dispatchEvent(
           new CustomEvent('cart:update', {
@@ -1540,9 +1542,8 @@
         );
 
         // Open drawer
-        const drawer =  document.querySelector('#cart-drawer')
-        console.log(typeof drawer)
-         console.log(typeof drawer.open)
+         const drawer =  document.querySelector('#cart-drawer')
+       
          if (drawer) {      
             if (typeof drawer.open === 'function') { drawer.open(); return; }
           //  drawer.setAttribute('open', '');
