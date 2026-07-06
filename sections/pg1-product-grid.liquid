@@ -1457,7 +1457,7 @@
           await refreshHorizonHeaderCartIcon(data);
           console.log(CONFIG.cartBehavior)
           if (CONFIG.cartBehavior === "redirect") window.location.href = "/cart";
-          else if (CONFIG.cartBehavior === "drawer") await openHorizonCartDrawer();
+          else if (CONFIG.cartBehavior === "drawer") await openHorizonCartDrawer(data);
           showToast("✓ Added to cart");
 
 
@@ -1503,7 +1503,8 @@
      
     } // refreshhorizon cart
     
-    async   function openHorizonCartDrawer() {
+    async   function openHorizonCartDrawer(data) {
+      console.log("openHorizonCartDrawer", data)
     // 1. Horizon's product-form-component fires this event natively — replicate it
     document.documentElement.dispatchEvent(
       new CustomEvent('cart:refresh', { bubbles: true, detail: { openMiniCart: true } })
