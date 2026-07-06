@@ -791,7 +791,7 @@
     const sortSelect = root.querySelector('[data-pg1-sort-select]');
     const resultsCount = root.querySelector('[data-pg1-results-count]');
     const paginationEl = root.querySelector('[data-pg1-pagination]');
-    const toastEl = document.getElementById('spg-toast-' + SID);
+    const toastEl = document.getElementById('pg1-toast-' + SID);
 
     // console.log(paginationEl);
 
@@ -917,7 +917,7 @@
                     <div class="pg1-quick-add">
                         <form method="post" action="/cart/add" novalidate data-pg1-atc-form>
                         <input type="hidden" name="form_type" value="product">
-                        <input type="hidden" name="id" value="${variant?.id || ''}" data-variant-input>
+                        <input type="hidden" name="id" value="${variant?.id || ''}" data-pg1-variant-input>
                         <input type="hidden" name="quantity" value="1">
                         <button type="submit" name="add"
                             class="pg1-quick-add-btn {atcClass}"
@@ -1103,15 +1103,15 @@
       return `
         <div class="pg1-card-price">
           <span class="pg1-price-current" data-pg1-price>
-            ${formatMoney(price)} 
-            ${
+            ${formatMoney(price)}      
+           
+          </span>
+           ${
               isSale
                 ? `<span class="pg1-price-original" data-pg1-compare>${formatMoney(compareAt)}</span>
                   <span class="pg1-price-save">−${discount}%</span>`
                 : '<span data-pg1-compare style="display:none"></span>'
             }
-           
-          </span>
         </div>
       `;
     }
@@ -1286,9 +1286,14 @@
           ),
         );
 
-    
+        
       if(!match) return;
-   //   console.log(match)
+
+      // id_update
+      const variantInput = card.querySelector("[data-pg1-variant-input]");
+      if(variantInput) variantInput.value = match.id
+      // console.log(variantInput)
+    
       // update state 
       updateCardPrice(card, match);
       updateCardATC(card,match);
@@ -1315,12 +1320,34 @@
       });     
     }
 
-    function updateCardPrice(card, variant){
-       // const isSale 
-       console.log(variant)
+    
+     function updateCardPrice(card, variant){
+        const isSale  = variant.compareAtPrice && variant.compareAtPrice > variant.price;
+      //  console.log(isSale)
+
+        // data-pg1-price
+        card.querySelector("[data-pg1-price]").textContent = formatMoney(variant.price);
+        const compareEl = card.querySelector("[data-pg1-compare]");
+      //  console.log('compareEl:',compareEl)
+
+        if(compareEl){
+          compareEl.textContent = isSale ? formatMoney(variant.compareAtPrice):"";
+          compareEl.style.display = isSale ? "" : "none"
+        }       
     }
-    function  updateCardATC(card,match){}
+
+    function  updateCardATC(card,variant){
+      const btn = card.querySelector("[data-pg1-atc-btn]");
+      if(!btn) return;
+      btn.disabled = !variant.available;
+      btn.classList.toggle("sold-out", !variant.available);
+      btn.textContent = variant.available ? "+ Add to Cart" : "Sold Out";
+    }
+
+   
     function  updateCardBadges(card, match){}
+
+    // ********** swatch releted functin ends
        
     // #bindSlider
    function bindSlider(card,pid,images, sliderEl){
@@ -1357,12 +1384,139 @@
     function bindWishlist(card, pid) {
    
     }
+
+
   
 
     {% comment %} #bindATC {% endcomment %}
 
    function bindATC(card, pid){
-    
+        // data-pg1-atc-form
+        // data-pg1-atc-btn
+        const form = card.querySelector("[data-pg1-atc-form]");
+        const btn = card.querySelector("[data-pg1-atc-btn]");
+        if( !form || !btn) return;
+
+        form.addEventListener("submit", async (e)=>{
+           e.preventDefault();
+           e.stopPropagation();
+           if (btn.disabled || btn.classList.contains("loading")) return
+          const variantId = parseInt(
+            card.querySelector("[data-pg1-variant-input]").value
+            )
+          
+          if(!variantId){
+            showToast("please select a variant.", true);
+            return
+          }
+
+        //  clearTimeout(timeout);
+
+          // loading 
+          btn.classList.add("loading");
+          btn.textContent = "Adding";
+          btn.disalbed = true; 
+          
+          try{
+
+            const cartDrawer = document.querySelector('cart-drawer-component');
+
+            let formData = {
+            'items': [{
+              'id': variantId,
+              'quantity': 1
+              }],
+              'sections': cartDrawer?.getSectionsToRender
+                ? cartDrawer.getSectionsToRender().map((s) => s.id)
+                : ['cart-drawer'],
+              'sections_url': window.location.pathname,
+            };
+            const res = await fetch('/cart/add.js',{
+              method:"POST",
+              headers:{
+                "Content-Type": "application/json",
+                Accept: "application/json"
+              },
+              body: JSON.stringify(formData)
+            })
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.description || "Error");
+
+          // Success
+            btn.classList.remove("loading");
+            btn.classList.add("added");
+            btn.disabled = false;
+            btn.textContent = "✓ Added!";
+            setTimeout(() => {
+              btn.classList.remove("added");
+              btn.textContent = "+ Add to Cart";
+          }, 2500);
+
+          await refreshHorizonCart(data);
+
+          if (CONFIG.cartBehavior === "redirect") window.location.href = "/cart";
+          else if (CONFIG.cartBehavior === "drawer") openHorizonCartDrawer();
+          showToast("✓ Added to cart");
+
+
+          }catch(err){
+             btn.classList.remove("loading");
+            btn.disabled = false;
+            btn.textContent = "+ Add to Cart";
+            showToast("⚠ " + (err.message || "Could not add to cart."), true);
+          }
+        
+
+        }) // eventlistener  
+    }
+
+    // 10 cart integration
+
+    async function refreshHorizonCart(data) {
+      // header-actions__cart-icon header-actions__cart-icon--has-cart
+      // cart-bubble__text-count
+      // data-testid
+      // span -- class-- cart-bubble__text-count
+      const cartIcon = document.querySelector('cart-icon.header-actions__cart-icon')
+      const cartTextCount = cartIcon.querySelector('span.cart-bubble__text-count');
+      const cartBuble     = cartIcon.querySelector(".cart-bubble");
+      
+      const res = await fetch('/cart.js', {
+              headers: {accept: "application/json"}
+      })
+
+      const cart = await res.json();
+     // console.log(cart);
+
+      // update header icon
+      cartTextCount.classList.remove("hidden")
+      cartBuble.classList.remove("visually-hidden")
+      setTimeout(()=>{
+        cartTextCount.innerText = cart.item_count;
+      }, 100)
+
+      // update cart component
+   
+
+
+
+
+
+     
+    } // refreshhorizon cart
+
+    function openHorizonCartDrawer(){}
+
+
+    {% comment %} #toast {% endcomment %}
+
+    function showToast(msg, isError) {
+      if (!toastEl) return;
+      clearTimeout(toastTimer);
+      toastEl.textContent = msg || '✓ Added to cart';
+      toastEl.classList.toggle('error', !!isError);
+      toastEl.classList.add('show');
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
     }
 
     
