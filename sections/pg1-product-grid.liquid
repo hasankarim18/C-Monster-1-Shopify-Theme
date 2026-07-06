@@ -1498,18 +1498,19 @@
       }, 100)
 
       // update cart component
-      console.log(cart)
-      const { CartAddEvent } = await import('@theme/events');
-      document.dispatchEvent(
-        new CartAddEvent(cart, 'my-custom-section', {
-          source: 'my-custom-section',
-          itemCount: cart.items?.length,
-          sections: {},
-        })
-      );
    
-
-
+  document.dispatchEvent(
+    new CustomEvent('cart:update', {
+      bubbles: true,
+      detail:{
+        data: {
+          itemCount: 1,
+          source: 'product-form-component'
+        }
+      }
+    })
+  );
+}
 
 
 
