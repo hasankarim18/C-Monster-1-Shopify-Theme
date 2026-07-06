@@ -928,7 +928,9 @@
                         </form>
                         <product-form-component>
                           {% form 'product', product %}
-
+                               <input type="hidden" name="form_type" value="product">
+                                <input type="hidden" name="id" value="${variant?.id || ''}" data-pg1-variant-input>
+                                <input type="hidden" name="quantity" value="1">
                           {% endform %}
                         </product-form-component>
                     </div>
