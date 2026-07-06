@@ -1512,12 +1512,11 @@
         return;
     }
 
-    const sectionId = cartItems.dataset.sectionId;
-    console.log("sectionId:",sectionId)
+    const sectionId = cartItems.dataset.sectionId;   
 
     // Fetch the rendered section HTML
     const url = `${window.location.pathname}?sections=${sectionId}`
-    console.log('url:', url)
+   
     const response = await fetch(
         url      
     );
@@ -1528,9 +1527,7 @@
     const sectionHtml = sections[sectionId];
     const doc   = new DOMParser().parseFromString(sectionHtml, 'text/html');
 
-   console.log('doc',doc)
-
-   
+   console.log('doc',doc)   
 
     const newSection = doc.querySelector(`#shopify-section-${sectionId}`)
     const oldSection = document.querySelector(`#shopify-section-${sectionId}`)
@@ -1558,9 +1555,7 @@
         drawer.open();
     } else {
         drawer.open = true;
-    }
-
-   
+    }   
 }
 
     {% comment %} #toast {% endcomment %}
