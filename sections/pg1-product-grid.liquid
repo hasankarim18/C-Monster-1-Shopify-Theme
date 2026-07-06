@@ -1529,6 +1529,7 @@
       const cart = await fetch('/cart.js').then(r => r.json());
 
     // 3. Try web component open() method
+       console.log('cart:', cart)
         document.dispatchEvent(
           new CustomEvent('cart:update', {
             bubbles: true,
