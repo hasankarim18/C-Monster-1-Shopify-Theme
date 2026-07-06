@@ -1504,7 +1504,7 @@
     } // refreshhorizon cart
 
  async function openHorizonCartDrawer() {
-  console.log("open cart drawer");
+
       // 1. Horizon's product-form-component fires this event natively — replicate it
       document.documentElement.dispatchEvent(
         new CustomEvent('cart:refresh', { bubbles: true, detail: { openMiniCart: true } })
@@ -1530,6 +1530,7 @@
 
       // 3. Try web component open() method
       const drawer = document.querySelector('.cart-drawer');
+      console.log(drawer)
       if (drawer) {
         if (typeof drawer.open === 'function') {
           drawer.open();
