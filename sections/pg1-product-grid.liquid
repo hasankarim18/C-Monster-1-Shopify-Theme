@@ -1506,7 +1506,10 @@
     async   function openHorizonCartDrawer(data) {
       console.log("openHorizonCartDrawer", data)
       const drawer =  document.querySelector('#cart-drawer')
-      console.log(drawer.dataset.sectionId)
+      const drawerSectionId = document
+          .querySelector('cart-drawer-component cart-items-component')
+          ?.dataset.sectionId;
+      console.log(drawerSectionId)
  
 
       const cart = await fetch('/cart.js').then(r => r.json());
