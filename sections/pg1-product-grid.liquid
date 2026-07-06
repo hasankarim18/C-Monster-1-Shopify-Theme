@@ -1542,7 +1542,7 @@
    if (newCartDialogue && oldCartDialogue) {
     //  console.log('section found')
       newCartDialogue.setAttribute('open','');
-      newCartDialogue.innerHTML = oldCartDialogue.innerHTML
+      oldCartDialogue.innerHTML = newCartDialogue.innerHTML
       // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
