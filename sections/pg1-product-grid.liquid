@@ -1522,30 +1522,27 @@
     );
 
     const sections = await response.json();
-    console.log(sections)
+   
 
     const sectionHtml = sections[sectionId];
     const doc   = new DOMParser().parseFromString(sectionHtml, 'text/html');
-
-   console.log('doc',doc)   
+  
 
     const newSection = doc.querySelector(`#shopify-section-${sectionId}`)
     const oldSection = document.querySelector(`#shopify-section-${sectionId}`)
 
-    console.log(newSection)
-    console.log(oldSection)
 
-    const newCartItems = newSection.querySelector('.theme-drawer__dialog ')
-    const oldCartItems = oldSection.querySelector('.theme-drawer__dialog ')
+    const newCartDialogue = newSection.querySelector('.theme-drawer__dialog ')
+    const oldCartDialogue = oldSection.querySelector('.theme-drawer__dialog ')
 
-    console.log('newCartItems',newCartItems)
-    console.log('oldCartItems',oldCartItems)
+  //  console.log('newCartItems',newCartDialogue)
+  //  console.log('oldCartItems',oldCartDialogue)
 
 
-   if (newCartItems && oldCartItems) {
-      console.log('section found')
-      newCartItems.setAttribute('open','');
-      oldCartItems.innerHTML = newCartItems.innerHTML
+   if (newCartDialogue && oldCartDialogue) {
+    //  console.log('section found')
+      newCartDialogue.setAttribute('open','');
+      newCartDialogue.innerHTML = oldCartDialogue.innerHTML
       // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
