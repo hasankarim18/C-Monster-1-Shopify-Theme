@@ -1505,10 +1505,7 @@
     
     async   function openHorizonCartDrawer(data) {
       console.log("openHorizonCartDrawer", data)
-    // 1. Horizon's product-form-component fires this event natively — replicate it
-    {% comment %} document.documentElement.dispatchEvent(
-      new CustomEvent('cart:refresh', { bubbles: true, detail: { openMiniCart: true } })
-    );   {% endcomment %}
+ 
 
     // 2. Try clicking the native cart icon/button to open the drawer
     const selectors = [
