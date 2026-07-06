@@ -1525,7 +1525,7 @@
         }
     );
 
-    const responseText = await response.json();
+    const responseText = await response.text();
 
     const html = new DOMParser().parseFromString(responseText, 'text/html');
 
