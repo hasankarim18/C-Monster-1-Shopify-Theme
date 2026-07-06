@@ -1498,10 +1498,9 @@
       }, 100)
 
       // update cart component
-      const cartDrawer = document.querySelector('cart-drawer-component');
-      console.log(cartDrawer)
-          await cartDrawer.renderContents();
-          cartDrawer.open();
+    document.dispatchEvent(
+      new CustomEvent('cart:refresh')
+    );
 
 
 
