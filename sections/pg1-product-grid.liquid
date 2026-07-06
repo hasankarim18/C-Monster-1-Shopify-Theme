@@ -1530,7 +1530,8 @@
     const drawer = document.querySelector('.theme-drawer__dialog');
     console.log(typeof drawer.open)
     if (drawer) {      
-      if (typeof drawer.open === 'function') { drawer.open(); return; }
+    //  if (typeof drawer.open === 'function') { drawer.open(); return; }
+     drawer.setAttribute('open', '')
     //  drawer.setAttribute('open', '');
 
     }else{
