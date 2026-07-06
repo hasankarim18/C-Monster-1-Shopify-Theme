@@ -1529,15 +1529,13 @@
 
     const html = new DOMParser().parseFromString(responseText, 'text/html');
 
-   // console.log(html)
+   console.log(html)
 
    
 
     const newSection = html.querySelector('cart-items-component')
     const oldSection = document.querySelector('cart-items-component')
 
-    console.log("newSection",newSection )
-    console.log("oldSection",oldSection )
 
    if (newSection && oldSection) {
         oldSection.innerHTML = newSection
