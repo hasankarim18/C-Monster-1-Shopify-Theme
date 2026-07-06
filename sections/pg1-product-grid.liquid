@@ -1503,37 +1503,55 @@
      
     } // refreshhorizon cart
     
-    async   function openHorizonCartDrawer(data) {
-      console.log("openHorizonCartDrawer", data)
-      const drawer =  document.querySelector('#cart-drawer')
-     console.log(document.querySelector('cart-items-component'));
- 
+    async function openHorizonCartDrawer() {
+    const drawer = document.querySelector('#cart-drawer');
+    const cartItems = document.querySelector('cart-items-component');
 
-      const cart = await fetch('/cart.js').then(r => r.json());
+    if (!drawer || !cartItems) {
+        console.warn('Cart drawer not found');
+        return;
+    }
 
-    // 3. Try web component open() method
-       console.log('cart:', cart)
-        document.dispatchEvent(
-          new CustomEvent('cart:update', {
-            bubbles: true,
-            detail: {
-              data: cart
+    const sectionId = cartItems.dataset.sectionId;
+
+    // Fetch the rendered section HTML
+    const response = await fetch(
+        `/cart?sections=${encodeURIComponent(sectionId)}`,
+        {
+            headers: {
+                Accept: 'application/json'
             }
-          })
-        );
+        }
+    );
 
-        // Open drawer
-       
-       
-         if (drawer) {      
-            if (typeof drawer.open === 'function') { drawer.open(); return; }
-          //  drawer.setAttribute('open', '');
-            console.log('drawer found')
-          }else{
-            console.log('drawer not found')
-          }
+    const sections = await response.json();
 
-  }
+    if (!sections[sectionId]) {
+        console.error('Section HTML not returned');
+        return;
+    }
+
+    // Parse returned HTML
+    const doc = new DOMParser().parseFromString(
+        sections[sectionId],
+        'text/html'
+    );
+
+    // Replace the Shopify section
+    const newSection = doc.querySelector(`#shopify-section-${sectionId}`);
+    const oldSection = document.querySelector(`#shopify-section-${sectionId}`);
+
+    if (newSection && oldSection) {
+        oldSection.replaceWith(newSection);
+    }
+
+    // Open drawer
+    if (typeof drawer.open === 'function') {
+        drawer.open();
+    } else {
+        drawer.open = true;
+    }
+}
 
     {% comment %} #toast {% endcomment %}
 
