@@ -1531,7 +1531,7 @@
 
     const html = new DOMParser().parseFromString(responseText, 'text/html');
 
-   console.log(html)
+   console.log('html',html)
 
    
 
@@ -1543,7 +1543,7 @@
 
 
    if (html && oldSection) {
-        oldSection.innerHTML = html
+       // oldSection.innerHTML = html
     }else{
       console.log('htmls not found')
     }
