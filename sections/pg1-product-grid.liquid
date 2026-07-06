@@ -1499,18 +1499,18 @@
 
       // update cart component
    
-  document.dispatchEvent(
-    new CustomEvent('cart:update', {
-      bubbles: true,
-      detail:{
-        data: {
-          itemCount: 1,
-          source: 'product-form-component'
-        }
+        document.dispatchEvent(
+          new CustomEvent('cart:update', {
+            bubbles: true,
+            detail:{
+              data: {
+                itemCount: 1,
+                source: 'product-form-component'
+              }
+            }
+          })
+        );
       }
-    })
-  );
-}
 
 
 
