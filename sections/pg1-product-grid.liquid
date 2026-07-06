@@ -1525,13 +1525,13 @@
         }
     );
 
-    const responseText = await response.text();
+    const responseText = await response.json();
 
     const html = new DOMParser().parseFromString(responseText, 'text/html');
 
-     console.log(html)
+   
 
-    const newSection = html.querySelector('')
+  //  const newSection = html.querySelector('')
 
    
 
