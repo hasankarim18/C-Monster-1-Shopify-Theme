@@ -1455,7 +1455,7 @@
           }, 2500);
 
           await refreshHorizonCart(data);
-
+          console.log(CONFIG.cartBehavior)
           if (CONFIG.cartBehavior === "redirect") window.location.href = "/cart";
           else if (CONFIG.cartBehavior === "drawer") await openHorizonCartDrawer();
           showToast("✓ Added to cart");
