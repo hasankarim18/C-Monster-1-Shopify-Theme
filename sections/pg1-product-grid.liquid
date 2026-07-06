@@ -1541,6 +1541,7 @@
 
    if (newSection && oldSection) {
       console.log('section found')
+      oldSection.replaceWith(newSection);
       // oldSection.innerHTML = html.innerHTML
     }else{
       console.log('htmls not found')
