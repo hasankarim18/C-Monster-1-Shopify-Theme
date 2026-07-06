@@ -1505,6 +1505,8 @@
     
     async   function openHorizonCartDrawer(data) {
       console.log("openHorizonCartDrawer", data)
+      const drawer =  document.querySelector('#cart-drawer')
+      console.log(drawer)
  
 
       const cart = await fetch('/cart.js').then(r => r.json());
@@ -1521,7 +1523,7 @@
         );
 
         // Open drawer
-         const drawer =  document.querySelector('#cart-drawer')
+       
        
          if (drawer) {      
             if (typeof drawer.open === 'function') { drawer.open(); return; }
