@@ -1517,7 +1517,7 @@
 
     // Fetch the rendered section HTML
     const response = await fetch(
-        `/cart?section_id=${sectionId}`,
+        `${window.location.pathname}?sections=${sectionId}`,
         {
             headers: {
                 Accept: 'application/json'
