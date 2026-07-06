@@ -1498,7 +1498,10 @@
       }, 100)
 
       // update cart component
-  
+      const cartDrawer = document.querySelector('cart-drawer-component');
+
+          await cartDrawer.renderContents();
+          cartDrawer.open();
 
 
 
